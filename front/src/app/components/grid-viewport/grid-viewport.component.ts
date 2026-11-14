@@ -69,6 +69,15 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
   private uExtinctionProbLoc: WebGLUniformLocation | null = null;
   private uIsDarkLoc: WebGLUniformLocation | null = null;
   private uLayerLoc: WebGLUniformLocation | null = null;
+  private uGravityLoc: WebGLUniformLocation | null = null;
+  private uIsVentingLoc: WebGLUniformLocation | null = null;
+
+  // Visualización del osciloscopio de telemetría en vivo
+  public readonly showLiveChart = signal<boolean>(false);
+
+  public toggleLiveChart(): void {
+    this.showLiveChart.update((v) => !v);
+  }
 
   public ngAfterViewInit(): void {
     setTimeout(() => {
@@ -159,12 +168,27 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
       uniform float u_extinctionProb;
       uniform float u_isDark;
       uniform float u_layer;
+      uniform float u_gravity;
+      uniform float u_isVenting;
 
       // Densidad y emisión óptica de la llama en microgravedad (NASA C-1998-485 / BASS-II / FLEX)
       vec4 sampleMicrogravityFlame(vec3 p) {
+        if (u_isVenting > 0.5) {
+          return vec4(0.0);
+        }
+
         // Centro del domo esférico de difusión sobre la muestra sólida
         vec3 flameCenter = vec3(0.0, 0.06, 0.0);
         vec3 q = p - flameCenter;
+
+        // Deformación por boyamiento gravitacional (1-g Terrestre vs 0-g Espacial - Foto 1 NASA)
+        if (u_gravity > 0.05) {
+          float buoyFactor = clamp(u_gravity, 0.0, 1.0);
+          if (q.y > -0.05) {
+            q.y *= (1.0 / (1.0 + buoyFactor * 1.55));
+            q.xz *= (1.0 + max(0.0, q.y) * 1.25 * buoyFactor);
+          }
+        }
 
         // 1. Deformación convectiva por flujo forzado (NASA BASS-II)
         float flowMag = u_flowVelocity / 25.0;
@@ -215,6 +239,13 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
         vec3 colViolet = vec3(0.74, 0.38, 0.96) * violetCore * 1.8;
         vec3 colAmber  = vec3(1.0, 0.64, 0.14) * amberSoot * 3.0;
         vec3 colWhite  = vec3(1.0, 0.98, 0.90) * whiteHot * 2.0;
+
+        // En 1-g terrestre, el hollín sube acelerado por boyamiento generando la punta amarilla (Foto 1 NASA izquierda)
+        if (u_gravity > 0.5) {
+          float tipSoot = smoothstep(0.0, 0.38, q.y) * 1.9;
+          colAmber += vec3(1.0, 0.72, 0.18) * tipSoot * 2.4;
+          colWhite += vec3(1.0, 0.96, 0.88) * tipSoot * 1.3;
+        }
 
         vec3 rgb = colBlue + colViolet + colAmber + colWhite;
         float alpha = clamp(blueShell * 1.45 + violetCore * 0.85 + amberSoot * 1.15, 0.0, 1.0);
@@ -456,6 +487,8 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
     this.uExtinctionProbLoc = gl.getUniformLocation(this.program, 'u_extinctionProb');
     this.uIsDarkLoc = gl.getUniformLocation(this.program, 'u_isDark');
     this.uLayerLoc = gl.getUniformLocation(this.program, 'u_layer');
+    this.uGravityLoc = gl.getUniformLocation(this.program, 'u_gravity');
+    this.uIsVentingLoc = gl.getUniformLocation(this.program, 'u_isVenting');
   }
 
   private compileShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader | null {
@@ -507,6 +540,9 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
     else if (this.ignisService.activeLayer() === 'sensors') layerId = 2.0;
     else if (this.ignisService.activeLayer() === 'gases') layerId = 3.0;
     gl.uniform1f(this.uLayerLoc, layerId);
+
+    gl.uniform1f(this.uGravityLoc, t.gravityG);
+    gl.uniform1f(this.uIsVentingLoc, s.isVentingToSpace ? 1.0 : 0.0);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }

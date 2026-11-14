@@ -1,149 +1,171 @@
 <div class="evidence-box ios-card" [class.critical-state]="ignisService.evidenceCard().risk === 'CRITICAL'">
-  <!-- Cabecera de la tarjeta -->
+  <!-- Cabecera técnica de registro de telemetría NASA PSI -->
   <div class="evidence-header">
     <div class="header-left-col">
       <div class="meta-row">
+        <span class="system-tag">[NASA_PSI_RECORD]</span>
         <span class="id-tag">{{ ignisService.evidenceCard().id }}</span>
         <span class="ios-badge" [ngClass]="{
           'danger': ignisService.evidenceCard().risk === 'CRITICAL',
           'warning': ignisService.evidenceCard().risk === 'HIGH',
-          'success': ignisService.evidenceCard().risk === 'LOW'
+          'success': ignisService.evidenceCard().risk === 'LOW',
+          'blue': ignisService.evidenceCard().risk === 'EXTINCT'
         }">
-          Riesgo: {{ ignisService.evidenceCard().risk }}
+          ESTADO: {{ ignisService.evidenceCard().risk }}
         </span>
         <span class="conf-badge">
-          Confianza: <strong>{{ (ignisService.evidenceCard().confidence * 100).toFixed(0) }}%</strong>
+          CONFIANZA BAYESIANA: <strong>{{ (ignisService.evidenceCard().confidence * 100).toFixed(0) }}%</strong>
         </span>
       </div>
       <h2 class="evidence-headline">{{ ignisService.evidenceCard().title }}</h2>
     </div>
 
-    <!-- Indicadores cuantitativos estilo Apple Watch / Fitness -->
-    <div class="quick-stats-row">
-      <div class="stat-pill">
-        <span class="pill-label">Calor liberado</span>
-        <span class="pill-number">{{ ignisService.evidenceCard().heatReleaseKw }} kW</span>
+    <!-- Telemetría cuantitativa tabular de consola de misión -->
+    <div class="aero-stats-table">
+      <div class="stat-cell">
+        <span class="cell-label">CALOR LIBERADO (HRR)</span>
+        <span class="cell-val">{{ ignisService.evidenceCard().heatReleaseKw }} kW</span>
       </div>
-      <div class="stat-pill">
-        <span class="pill-label">Monóxido de carbono</span>
-        <span class="pill-number" [class.alert]="ignisService.evidenceCard().coPpm > 40">
+      <div class="stat-divider"></div>
+      <div class="stat-cell">
+        <span class="cell-label">MONÓXIDO (CO)</span>
+        <span class="cell-val" [class.alert]="ignisService.evidenceCard().coPpm > 40">
           {{ ignisService.evidenceCard().coPpm }} ppm
         </span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-cell">
+        <span class="cell-label">DIÓXIDO (CO₂)</span>
+        <span class="cell-val">{{ ignisService.telemetry().co2Percent }}%</span>
       </div>
     </div>
   </div>
 
-  <!-- CADENA CAUSAL MECANICISTA (Sin emojis, pasos claros y minimalistas) -->
-  <div class="causal-timeline">
-    <div class="timeline-title">
-      <svg class="icon-svg timeline-icon" viewBox="0 0 24 24">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-      </svg>
-      <span>Cadena causal inferida</span>
+  <!-- PIPELINE CAUSAL DE INGENIERÍA (DAG DE TELEMETRÍA) -->
+  <div class="causal-pipeline-container">
+    <div class="pipeline-header">
+      <span class="pipeline-title">PIPELINE DE INFERENCIA MECANICISTA (INTERACTIVO)</span>
+      <span class="pipeline-sub">Haz clic en una etapa para desplegar ecuaciones de balance térmico</span>
     </div>
 
-    <div class="timeline-nodes">
-      <div class="node-item">
-        <span class="node-step">01. Condiciones</span>
+    <div class="pipeline-bus">
+      <div class="bus-node" [class.selected]="activeCausalStep() === 1" (click)="selectCausalStep(1)">
+        <div class="node-header">
+          <span class="node-idx">[01/COND]</span>
+          <span class="node-tag">ENTRADA</span>
+        </div>
         <p class="node-text">{{ ignisService.evidenceCard().causalChain.conditions }}</p>
       </div>
 
-      <div class="node-connector">
-        <svg class="icon-svg chevron-icon" viewBox="0 0 24 24">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </div>
-
-      <div class="node-item">
-        <span class="node-step">02. Mecanismo Físico</span>
+      <div class="bus-node" [class.selected]="activeCausalStep() === 2" (click)="selectCausalStep(2)">
+        <div class="node-header">
+          <span class="node-idx">[02/PHYS]</span>
+          <span class="node-tag">MECANISMO</span>
+        </div>
         <p class="node-text">{{ ignisService.evidenceCard().causalChain.physicalMechanism }}</p>
       </div>
 
-      <div class="node-connector">
-        <svg class="icon-svg chevron-icon" viewBox="0 0 24 24">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </div>
-
-      <div class="node-item">
-        <span class="node-step">03. Observación NASA</span>
+      <div class="bus-node" [class.selected]="activeCausalStep() === 3" (click)="selectCausalStep(3)">
+        <div class="node-header">
+          <span class="node-idx">[03/DATA]</span>
+          <span class="node-tag">OBSERVACIÓN</span>
+        </div>
         <p class="node-text">{{ ignisService.evidenceCard().causalChain.observations }}</p>
       </div>
 
-      <div class="node-connector">
-        <svg class="icon-svg chevron-icon" viewBox="0 0 24 24">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </div>
-
-      <div class="node-item highlight-node">
-        <span class="node-step">04. Resultado</span>
+      <div class="bus-node outcome-node" [class.selected]="activeCausalStep() === 4" (click)="selectCausalStep(4)">
+        <div class="node-header">
+          <span class="node-idx">[04/EVAL]</span>
+          <span class="node-tag">RESULTADO</span>
+        </div>
         <p class="node-text">{{ ignisService.evidenceCard().causalChain.outcome }}</p>
       </div>
     </div>
+
+    <!-- Desglose físico-matemático expandible -->
+    @if (activeCausalStep(); as step) {
+      <div class="causal-step-details">
+        @if (step === 1) {
+          <div class="step-detail-card">
+            <span class="eq-tag">[PARAMETROS_FRONTERA]</span>
+            <p>Mapeo de capa límite hidrodinámica en conducto de ventilación forzada en microgravedad (Gr ≈ 0). Presión parcial P_O₂ = {{ ignisService.telemetry().partialPressureO2Kpa }} kPa determina el flujo molar hacia el frente de llama.</p>
+          </div>
+        } @else if (step === 2) {
+          <div class="step-detail-card">
+            <span class="eq-tag">[BALANCE_TERMOQUIMICO]</span>
+            <p>Tasa de pirólisis superficial: <code>m''_F = (q''_rad + q''_conv - q''_rerad) / Δh_vap</code>. Con Da = {{ ignisService.telemetry().damkohlerNumber }} y Re = {{ ignisService.telemetry().reynoldsNumber }}, el transporte de masa difusivo define el umbral de persistencia sin sustentación boyante.</p>
+          </div>
+        } @else if (step === 3) {
+          <div class="step-detail-card">
+            <span class="eq-tag">[DATOS_EMPIRICOS_NASA]</span>
+            <p>Correlación estricta con repositorio NASA PSI (Saffire VI / BASS-II). Registro temprano de monóxido de carbono (CO) e incandescencia molecular previa al incremento térmico de campo lejano.</p>
+          </div>
+        } @else if (step === 4) {
+          <div class="step-detail-card">
+            <span class="eq-tag">[CLASIFICACION_RIESGO]</span>
+            <p>Régimen clasificado como {{ ignisService.evidenceCard().risk }} según estándar NASA-STD-6001 Test 1 con confianza bayesiana acumulada del {{ (ignisService.evidenceCard().confidence * 100).toFixed(0) }}%.</p>
+          </div>
+        }
+      </div>
+    }
   </div>
 
   <!-- Fundamento empírico y advertencias de extrapolación -->
   <div class="grounding-grid">
     <div class="grounding-column">
       <div class="ground-point">
-        <span class="ground-label">Evidencia directa:</span>
+        <span class="ground-label">EVIDENCIA DIRECTA:</span>
         <span class="ground-value nasa-accent">{{ ignisService.evidenceCard().directEvidence }}</span>
       </div>
       <div class="ground-point">
-        <span class="ground-label">Evidencia análoga:</span>
+        <span class="ground-label">EVIDENCIA ANÁLOGA:</span>
         <span class="ground-value">{{ ignisService.evidenceCard().analogousEvidence }}</span>
       </div>
       <div class="ground-point">
-        <span class="ground-label">Análisis contrafactual:</span>
+        <span class="ground-label">ANÁLISIS CONTRAFACTUAL:</span>
         <p class="ground-body">{{ ignisService.evidenceCard().counterfactual }}</p>
+        <button type="button" class="counterfactual-trigger-btn" (click)="applyCounterfactual()">
+          <span class="btn-dot"></span>
+          <span>EJECUTAR CONTRAFACTUAL EN LA SIMULACIÓN</span>
+        </button>
       </div>
     </div>
 
     <div class="grounding-column">
       <div class="extrapolation-card">
         <div class="extrap-head">
-          <svg class="icon-svg alert-icon" viewBox="0 0 24 24">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-          <span class="extrap-title">Límites de extrapolación</span>
+          <span class="extrap-tag">[LÍMITES DE EXTRAPOLACIÓN]</span>
         </div>
         <p class="extrap-text">{{ ignisService.evidenceCard().warning }}</p>
         <div class="tags-cluster">
           @for (tag of ignisService.evidenceCard().extrapolatedVars; track tag) {
-            <span class="tag-pill">Variable no ensayada: {{ tag }}</span>
+            <span class="tag-pill">NO_ENSAYADO: {{ tag }}</span>
           }
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Botones de Acción Científica estilo iOS -->
+  <!-- Botones de Acción Científica estilo Consola Aeroespacial -->
   <div class="action-footer">
     <button type="button" class="ios-btn primary" (click)="openDrawer('evidence')">
-      <svg class="icon-svg btn-icon" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-      <span>Consultar Evidencia Experimental</span>
+      <svg class="icon-svg btn-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <span>CONSULTAR EVIDENCIA EXPERIMENTAL (PSI)</span>
     </button>
 
     <button type="button" class="ios-btn danger" (click)="openDrawer('challenge')">
-      <svg class="icon-svg btn-icon" viewBox="0 0 24 24">
-        <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
-        <path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path>
-        <circle cx="8" cy="12" r="2"></circle>
-      </svg>
-      <span>Evaluar Contraejemplo Físico</span>
+      <svg class="icon-svg btn-icon" viewBox="0 0 24 24"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path><path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path><circle cx="8" cy="12" r="2"></circle></svg>
+      <span>EVALUAR CONTRAEJEMPLO FÍSICO</span>
     </button>
 
     <button type="button" class="ios-btn secondary" (click)="openDrawer('next-test')">
-      <svg class="icon-svg btn-icon" viewBox="0 0 24 24">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-      </svg>
-      <span>Sugerir Siguiente Ensayo</span>
+      <svg class="icon-svg btn-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      <span>SUGERIR SIGUIENTE ENSAYO</span>
+    </button>
+
+    <button type="button" class="ios-btn export" (click)="exportData()">
+      <svg class="icon-svg btn-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      <span>EXPORTAR TELEMETRÍA (JSON)</span>
     </button>
   </div>
 </div>

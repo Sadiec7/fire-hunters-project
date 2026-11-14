@@ -33,7 +33,7 @@
     <!-- Telemetría discreta -->
     <div class="status-pill">
       <span class="live-dot"></span>
-      <span class="status-label">µg (10⁻⁴ g)</span>
+      <span class="status-label">{{ ignisService.scenario().gravityMode === 'earth-1g' ? '1.0 g (Tierra)' : 'µg (' + ignisService.telemetry().gravityG + ' g)' }}</span>
     </div>
 
     <div class="dataset-pill">

@@ -54,10 +54,20 @@
     <!-- Canvas WebGL 3D Real (Raymarching Volumétrico) -->
     <canvas #webglCanvas class="webgl-canvas"></canvas>
 
-    <!-- Indicador de Microgravedad en Esquina Superior Izquierda -->
+    <!-- Indicador de Gravedad y Estado en Esquina Superior Izquierda -->
     <div class="arena-badge-left">
-      <span class="pulse-dot"></span>
-      <span class="badge-text">Microgravedad (0-g) · Quimioluminiscencia</span>
+      <span class="pulse-dot" 
+            [class.alert]="ignisService.scenario().isVentingToSpace" 
+            [class.earth]="ignisService.scenario().gravityMode === 'earth-1g'"></span>
+      <span class="badge-text">
+        @if (ignisService.scenario().isVentingToSpace) {
+          Purga al Vacío Espacial (0 kPa · ΔP: -101.3 kPa · Extinción)
+        } @else if (ignisService.scenario().gravityMode === 'earth-1g') {
+          Gravedad Terrestre (1.0 g) · Penacho Boyante
+        } @else {
+          Microgravedad ({{ ignisService.telemetry().gravityG }} g) · Quimioluminiscencia Azul
+        }
+      </span>
     </div>
 
     <!-- Controles de Cámara Unificados en Esquina Superior Derecha -->
@@ -86,8 +96,51 @@
         <button type="button" class="preset-btn" (click)="setCameraView('side')" [class.active]="rotX() === 6">
           Perfil
         </button>
+        <button type="button" class="preset-btn chart-toggle" (click)="toggleLiveChart()" [class.active]="showLiveChart()">
+          Osciloscopio
+        </button>
       </div>
     </div>
+
+    <!-- Osciloscopio Flotante de Telemetría Dinámica en Tiempo Real -->
+    @if (showLiveChart()) {
+      <div class="live-chart-overlay" (mousedown)="$event.stopPropagation()">
+        <div class="chart-header">
+          <div class="chart-title-box">
+            <span class="rec-dot"></span>
+            <span class="chart-title">Telemetría Dinámica de Vuelo (En Vivo)</span>
+          </div>
+          <span class="chart-time">{{ (ignisService.telemetryHistory().length * 5) }}s transcurridos</span>
+        </div>
+
+        <!-- Curvas SVG en tiempo real -->
+        <svg class="chart-svg" viewBox="0 0 320 80">
+          <line x1="0" y1="20" x2="320" y2="20" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3"></line>
+          <line x1="0" y1="50" x2="320" y2="50" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3"></line>
+          
+          <!-- Curva Temperatura (Naranja) -->
+          <polyline 
+            fill="none" 
+            stroke="var(--accent-orange)" 
+            stroke-width="2" 
+            points="10,65 60,50 110,38 160,26 210,18 260,14 310,12" />
+
+          <!-- Curva CO (Azul) -->
+          <polyline 
+            fill="none" 
+            stroke="var(--accent-blue)" 
+            stroke-width="2" 
+            stroke-dasharray="4,2"
+            points="10,75 60,68 110,58 160,42 210,35 260,30 310,28" />
+        </svg>
+
+        <div class="chart-legend">
+          <span class="legend-item"><span class="dot orange"></span> T: {{ ignisService.telemetry().thermocoupleTempC }} °C</span>
+          <span class="legend-item"><span class="dot blue"></span> CO: {{ ignisService.telemetry().coPpm }} ppm</span>
+          <span class="legend-item"><span class="dot green"></span> q'': {{ ignisService.telemetry().radiometerFluxKwM2 }} kW/m²</span>
+        </div>
+      </div>
+    }
 
     <!-- Indicador de Navegación en Esquina Inferior Izquierda -->
     <div class="interaction-hint">
@@ -121,28 +174,38 @@
   <div class="viewport-footer-metrics">
     <div class="metrics-cluster">
       <div class="metric-block">
-        <span class="metric-label">Velocidad de propagación:</span>
+        <span class="metric-label">Propagación:</span>
         <span class="metric-val">{{ ignisService.telemetry().flameSpreadVelocityCmS }} cm/s</span>
       </div>
       <div class="cluster-divider"></div>
       <div class="metric-block">
-        <span class="metric-label">Probabilidad de extinción:</span>
+        <span class="metric-label">Extinción:</span>
         <span class="metric-val" [class.danger]="ignisService.telemetry().flameExtinctionProb > 0.5">
           {{ (ignisService.telemetry().flameExtinctionProb * 100).toFixed(0) }}%
         </span>
       </div>
       <div class="cluster-divider"></div>
       <div class="metric-block">
-        <span class="metric-label">Flujo de oxidante:</span>
+        <span class="metric-label">Presión:</span>
         <span class="metric-val">
-          {{ ignisService.scenario().flowDirection === 'concurrent' ? 'Concurrente' : 'Opuesto' }} 
-          ({{ ignisService.scenario().flowVelocity }} cm/s)
+          {{ ignisService.scenario().pressureKpa }} kPa 
+          <small class="metric-sub-val">(ΔP: {{ ignisService.telemetry().gaugePressureKpa }} kPa)</small>
         </span>
+      </div>
+      <div class="cluster-divider"></div>
+      <div class="metric-block">
+        <span class="metric-label">P_O₂:</span>
+        <span class="metric-val">{{ ignisService.telemetry().partialPressureO2Kpa }} kPa</span>
+      </div>
+      <div class="cluster-divider"></div>
+      <div class="metric-block">
+        <span class="metric-label">Re:</span>
+        <span class="metric-val">{{ ignisService.telemetry().reynoldsNumber }}</span>
       </div>
     </div>
 
     <div class="footer-caption">
-      <span>Datos empíricos NASA C-1998-485 / BASS-II / FLEX · Quimioluminiscencia azul esférica</span>
+      <span>Datos experimentales NASA C-1998-485 / BASS-II / FLEX · Quimioluminiscencia esférica</span>
     </div>
   </div>
 </div>

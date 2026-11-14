@@ -1,27 +1,79 @@
 <div class="controls-card ios-card">
+  <!-- Cabecera de controles estilo Apple macOS HUD -->
   <div class="card-topbar">
     <div class="topbar-heading">
       <svg class="icon-svg heading-icon" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="3"></circle>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
       </svg>
-      <h3 class="topbar-title">Variables del Escenario</h3>
+      <h3 class="topbar-title">Variables Físicas de Vuelo (NASA PSI)</h3>
     </div>
 
-    <!-- Preajustes discretos estilo Apple -->
-    <div class="presets-group">
-      <span class="presets-title">Preajustes:</span>
-      <button type="button" class="preset-pill" (click)="applyPreset('saffire-vi')">Saffire VI</button>
-      <button type="button" class="preset-pill" (click)="applyPreset('bass-extinction')">BASS-II</button>
-      <button type="button" class="preset-pill" (click)="applyPreset('exploration-atm')">Exploración</button>
+    <!-- Preajustes y Selector de Sistema de Unidades -->
+    <div class="topbar-actions">
+      <div class="presets-group">
+        <span class="presets-title">Preajustes:</span>
+        <button type="button" class="preset-pill" (click)="applyPreset('saffire-vi')">Saffire VI</button>
+        <button type="button" class="preset-pill" (click)="applyPreset('bass-extinction')">BASS-II</button>
+        <button type="button" class="preset-pill" (click)="applyPreset('exploration-atm')">Exploración</button>
+        <button type="button" class="preset-pill alert" (click)="applyPreset('vacuum-quench')">Vacío (0 kPa)</button>
+      </div>
+
+      <!-- Toggle de Unidades SI vs Imperial NASA -->
+      <button type="button" class="units-toggle-btn" (click)="toggleUnits()" title="Alternar unidades SI / NASA">
+        <span>{{ ignisService.scenario().unitsSystem === 'si' ? 'SI (kPa · cm/s)' : 'NASA (psia · ft/min)' }}</span>
+      </button>
     </div>
   </div>
 
   <div class="controls-flow">
-    <!-- Selector de combustible con Segmented Control de Apple -->
+    <!-- 1. ENTORNO GRAVITATORIO: g-Jitter de la ISS vs 1-g Terrestre -->
     <div class="form-row">
       <div class="label-box">
-        <label class="field-label">Combustible sólido</label>
+        <label class="field-label">Entorno gravitatorio (g-Jitter / Convección)</label>
+        <span class="field-val-badge">
+          {{ ignisService.scenario().gravityMode === 'earth-1g' ? '1.0 g (Tierra)' : ignisService.telemetry().gravityG + ' g' }}
+        </span>
+      </div>
+      <div class="ios-segmented full-width">
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().gravityMode === 'micro-quiescent'"
+          (click)="setGravityMode('micro-quiescent')">
+          10⁻⁶ g (ISS Quiescente)
+        </button>
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().gravityMode === 'micro-active'"
+          (click)="setGravityMode('micro-active')">
+          10⁻⁴ g (ISS Nominal)
+        </button>
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().gravityMode === 'micro-rcs'"
+          (click)="setGravityMode('micro-rcs')">
+          10⁻² g (Maniobra RCS)
+        </button>
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().gravityMode === 'earth-1g'"
+          (click)="setGravityMode('earth-1g')">
+          1.0 g (Tierra - Convección)
+        </button>
+      </div>
+      <span class="field-hint">
+        Contrasta la difusión esférica de microgravedad frente al penacho boyante alargado terrestre (NASA C-1998-485).
+      </span>
+    </div>
+
+    <!-- 2. SELECTOR DE COMBUSTIBLE SÓLIDO ESPACIAL -->
+    <div class="form-row">
+      <div class="label-box">
+        <label class="field-label">Material combustible (NASA Flight Qualified)</label>
         <span class="field-val-badge">{{ ignisService.scenario().material }}</span>
       </div>
       <div class="ios-segmented full-width">
@@ -37,13 +89,23 @@
       </div>
     </div>
 
-    <!-- Slider Oxígeno O2 -->
+    <!-- 3. CONCENTRACIÓN DE OXÍGENO Y PRESIÓN PARCIAL P_O2 -->
     <div class="form-row">
       <div class="label-box">
-        <label class="field-label">Concentración de oxígeno (O₂)</label>
-        <span class="field-metric" [class.highlight]="ignisService.scenario().oxygenFraction >= 30">
-          {{ ignisService.scenario().oxygenFraction }}%
-        </span>
+        <div class="title-with-badge">
+          <label class="field-label">Concentración de oxígeno (O₂ molar)</label>
+          <span class="nasa-status-chip" [ngClass]="ignisService.telemetry().nasaStd6001Status.toLowerCase()">
+            NASA-STD-6001: {{ ignisService.telemetry().nasaStd6001Status }}
+          </span>
+        </div>
+        <div class="metrics-dual">
+          <span class="field-metric" [class.highlight]="ignisService.scenario().oxygenFraction >= 30">
+            {{ ignisService.scenario().oxygenFraction }}%
+          </span>
+          <span class="metric-sub">
+            P_O₂: {{ ignisService.scenario().unitsSystem === 'si' ? ignisService.telemetry().partialPressureO2Kpa + ' kPa' : ignisService.telemetry().partialPressureO2Psia + ' psia' }}
+          </span>
+        </div>
       </div>
       <div class="slider-wrapper">
         <input 
@@ -55,41 +117,100 @@
           [value]="ignisService.scenario().oxygenFraction"
           (input)="onOxygenChange($event)" />
         <div class="range-markers">
-          <span>18% (Límite)</span>
-          <span class="key-mark">30% (Saffire)</span>
-          <span>38%</span>
+          <span>18% (MOC Límite)</span>
+          <span class="key-mark">30% (Saffire VI)</span>
+          <span>38% (Oxígeno enriquecido)</span>
         </div>
       </div>
+      <span class="field-hint">
+        Criterio NASA: La inflamabilidad depende de la presión parcial P_O₂ (densidad molar de oxidante), no solo del porcentaje.
+      </span>
     </div>
 
-    <!-- Slider Presión de Cabina -->
+    <!-- 4. PRESIÓN AMBIENTAL: ABSOLUTA Y DIFERENCIAL NEGATIVA -->
     <div class="form-row">
       <div class="label-box">
-        <label class="field-label">Presión ambiental</label>
-        <span class="field-metric">{{ ignisService.scenario().pressureKpa }} kPa</span>
+        <div class="pressure-title-row">
+          <label class="field-label">Presión de cámara / cabina</label>
+          <button type="button" class="mode-toggle-link" (click)="togglePressureMode()">
+            {{ ignisService.scenario().pressureMode === 'absolute' ? 'Ver Manométrica (ΔP)' : 'Ver Absoluta (P_abs)' }}
+          </button>
+        </div>
+        <div class="metrics-dual">
+          @if (ignisService.scenario().isVentingToSpace) {
+            <span class="field-metric danger">0.0 kPa (Vacío Espacial)</span>
+            <span class="metric-sub alert">ΔP: -101.3 kPa · Purga Activa</span>
+          } @else if (ignisService.scenario().pressureMode === 'absolute') {
+            <span class="field-metric">
+              {{ ignisService.scenario().unitsSystem === 'si' ? ignisService.scenario().pressureKpa + ' kPa' : ignisService.telemetry().pressurePsia + ' psia' }}
+            </span>
+            <span class="metric-sub">
+              ΔP: {{ ignisService.telemetry().gaugePressureKpa }} kPa (Vacío relativo)
+            </span>
+          } @else {
+            <span class="field-metric negative-pressure">
+              ΔP: {{ ignisService.telemetry().gaugePressureKpa }} kPa
+            </span>
+            <span class="metric-sub">
+              P_abs: {{ ignisService.scenario().unitsSystem === 'si' ? ignisService.scenario().pressureKpa + ' kPa' : ignisService.telemetry().pressurePsia + ' psia' }}
+            </span>
+          }
+        </div>
       </div>
       <div class="slider-wrapper">
         <input 
           type="range" 
           class="apple-range blue-track" 
-          min="40" 
+          min="0" 
           max="101.3" 
-          step="1"
+          step="0.5"
           [value]="ignisService.scenario().pressureKpa"
           (input)="onPressureChange($event)" />
         <div class="range-markers">
-          <span>40 kPa</span>
-          <span class="key-mark">55 kPa (Cabina)</span>
+          <span>0 kPa (Vacío)</span>
+          <span class="key-mark">55 kPa (Cabina Orion/Saffire)</span>
           <span>101.3 kPa (1 atm)</span>
         </div>
       </div>
+      
+      <!-- Nota técnica de ingeniería aeroespacial -->
+      <div class="aero-telemetry-note">
+        <span class="note-tag">[FLIGHT_NOTE]</span>
+        <span class="note-text">
+          En microgravedad (ISS-MSG), la cámara se mantiene en diferencial negativo (ΔP ≈ -0.5 kPa) como contención física pasiva para evitar escape de toxinas a cabina habitable.
+        </span>
+      </div>
+
+      <!-- Botón de acción: Purga al Vacío Espacial de Emergencia (Consola Aeroespacial) -->
+      <div class="emergency-action-row">
+        @if (ignisService.scenario().isVentingToSpace) {
+          <button type="button" class="aero-emergency-btn restore" (click)="restoreCabinAtmosphere()">
+            <span class="btn-led green"></span>
+            <span class="btn-tag">[RE-PRESSURIZE]</span>
+            <span class="btn-title">Restaurar Presurización de Cabina (55.0 kPa · 8.0 psia)</span>
+          </button>
+        } @else {
+          <button type="button" class="aero-emergency-btn vent" (click)="triggerVacuumVenting()">
+            <span class="btn-led red-blink"></span>
+            <span class="btn-tag">[EMERGENCY VACUUM-VENT]</span>
+            <span class="btn-title">Purga al Vacío Espacial (0.0 kPa · ΔP: -101.3 kPa · Extinción)</span>
+          </button>
+        }
+      </div>
     </div>
 
-    <!-- Slider Flujo de Aire -->
+    <!-- 5. VENTILACIÓN FORZADA Y NÚMEROS ADIMENSIONALES (Re, Damköhler) -->
     <div class="form-row">
       <div class="label-box">
         <label class="field-label">Velocidad de ventilación forzada</label>
-        <span class="field-metric">{{ ignisService.scenario().flowVelocity }} cm/s</span>
+        <div class="metrics-dual">
+          <span class="field-metric">
+            {{ ignisService.scenario().unitsSystem === 'si' ? ignisService.scenario().flowVelocity + ' cm/s' : (ignisService.scenario().flowVelocity * 1.97).toFixed(0) + ' ft/min' }}
+          </span>
+          <span class="metric-sub">
+            Re: {{ ignisService.telemetry().reynoldsNumber }} (Laminar) · Da: {{ ignisService.telemetry().damkohlerNumber }}
+          </span>
+        </div>
       </div>
       <div class="slider-wrapper">
         <input 
@@ -97,21 +218,21 @@
           class="apple-range" 
           min="0" 
           max="35" 
-          step="1"
+          step="0.5"
           [value]="ignisService.scenario().flowVelocity"
           (input)="onFlowChange($event)" />
         <div class="range-markers">
-          <span>0 (Estático)</span>
+          <span>0 (Estático - Apagado radiativo)</span>
           <span class="key-mark">20 cm/s</span>
-          <span>35 cm/s</span>
+          <span>35 cm/s (Riesgo blow-off)</span>
         </div>
       </div>
     </div>
 
-    <!-- Toggle de Dirección de Flujo -->
+    <!-- 6. TOGGLE DE DIRECCIÓN DE FLUJO -->
     <div class="form-row">
       <div class="label-box">
-        <label class="field-label">Dirección del oxidante</label>
+        <label class="field-label">Dirección del flujo de oxidante</label>
       </div>
       <div class="ios-segmented full-width">
         <button 
@@ -119,16 +240,30 @@
           class="segment-btn" 
           [class.active]="ignisService.scenario().flowDirection === 'concurrent'"
           (click)="setFlowDirection('concurrent')">
-          Concurrente (Precalentamiento)
+          Concurrente (Precalentamiento por estela)
         </button>
         <button 
           type="button" 
           class="segment-btn" 
           [class.active]="ignisService.scenario().flowDirection === 'opposed'"
           (click)="setFlowDirection('opposed')">
-          Opuesto (Disipación convectiva)
+          Opuesto (Disipación térmica frontal)
         </button>
       </div>
+    </div>
+
+    <!-- 7. PROTOCOLOS DE SUPRESIÓN Y EXPORTACIÓN EXPERIMENTAL -->
+    <div class="operations-toolbar">
+      <div class="suppression-group">
+        <span class="ops-title">Inyección de Supresores:</span>
+        <button type="button" class="tool-btn" (click)="injectSuppressant('N2')">Inyectar N₂ Inerte</button>
+        <button type="button" class="tool-btn" (click)="injectSuppressant('CO2')">Inyectar CO₂</button>
+      </div>
+
+      <button type="button" class="export-data-btn" (click)="exportTelemetry()">
+        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Exportar Telemetría (JSON)</span>
+      </button>
     </div>
   </div>
 </div>

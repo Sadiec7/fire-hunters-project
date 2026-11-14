@@ -86,19 +86,22 @@
 
 .evidence-entry {
   background: var(--bg-secondary);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  transition: background 0.2s ease;
+  transition: all 0.12s ease;
 
   &:hover {
     background: var(--bg-tertiary);
+    border-color: var(--border-focus);
   }
 
   &.warning-entry {
-    background: var(--accent-orange-subtle);
+    background: var(--bg-secondary);
+    border-left: 3px solid var(--accent-orange);
   }
 }
 
