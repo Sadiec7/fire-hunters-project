@@ -11,35 +11,47 @@
       <span class="ios-badge">{{ ignisService.scenario().material }} · {{ ignisService.scenario().pressureKpa }} kPa</span>
     </div>
 
-    <!-- Segmented Control de Capas estilo Apple -->
+    <!-- Segmented Control de Capas Físicas (s-Flame ACME Sección 9) -->
     <div class="ios-segmented">
       <button 
         type="button"
         class="segment-btn" 
         [class.active]="ignisService.activeLayer() === 'all'"
-        (click)="setLayer('all')">
-        General
+        (click)="setLayer('all')"
+        title="Síntesis óptica real NASA (Quimioluminiscencia CH*/C2* + Hollín + Quemador)">
+        Óptica NASA
       </button>
       <button 
         type="button"
         class="segment-btn" 
         [class.active]="ignisService.activeLayer() === 'flame'"
-        (click)="setLayer('flame')">
-        Llama
+        (click)="setLayer('flame')"
+        title="Tasa de reacción química Arrhenius y liberación de calor q_chem (Sección 4.4, 9.1)">
+        q̇_chem
       </button>
       <button 
         type="button"
         class="segment-btn" 
-        [class.active]="ignisService.activeLayer() === 'sensors'"
-        (click)="setLayer('sensors')">
-        Sensores
+        [class.active]="ignisService.activeLayer() === 'temperature'"
+        (click)="setLayer('temperature')"
+        title="Campo térmico tridimensional continuo T(r) en Kelvin (Sección 3.4, 9.2)">
+        Campo T(r)
       </button>
       <button 
         type="button"
         class="segment-btn" 
-        [class.active]="ignisService.activeLayer() === 'gases'"
-        (click)="setLayer('gases')">
-        Gases
+        [class.active]="ignisService.activeLayer() === 'radiation'"
+        (click)="setLayer('radiation')"
+        title="Divergencia del flujo radiativo q_rad de CO2/H2O (Sección 5, 9.4)">
+        Pérdida q̇_rad
+      </button>
+      <button 
+        type="button"
+        class="segment-btn" 
+        [class.active]="ignisService.activeLayer() === 'soot'"
+        (click)="setLayer('soot')"
+        title="Concha y fracción de masa de partículas de hollín Y_s (Sección 6)">
+        Hollín Y_s
       </button>
     </div>
   </div>
@@ -63,9 +75,11 @@
         @if (ignisService.scenario().isVentingToSpace) {
           Purga al Vacío Espacial (0 kPa · ΔP: -101.3 kPa · Extinción)
         } @else if (ignisService.scenario().gravityMode === 'earth-1g') {
-          Gravedad Terrestre (1.0 g) · Penacho Boyante
+          Gravedad Terrestre (1.0 g) · Penacho Boyante Convectivo (C-1998-485)
+        } @else if (ignisService.scenario().burnerGeometry === 'sflame-sphere') {
+          NASA s-Flame (ACME): Esfera Porosa (rs=6.35 mm) · Llama rf={{ ignisService.telemetry().flameRadiusMm }} mm ({{ ignisService.telemetry().gravityG }} g)
         } @else {
-          Microgravedad ({{ ignisService.telemetry().gravityG }} g) · Quimioluminiscencia Azul
+          NASA BASS/Saffire: Muestra Plana · Difusión laminar ({{ ignisService.telemetry().gravityG }} g)
         }
       </span>
     </div>
@@ -150,8 +164,8 @@
       <span>Arrastra para rotar 360° · Rueda para zoom</span>
     </div>
 
-    <!-- Sensores Flotantes Proyectados en Coordenadas de Pantalla (Ocultos en vista Llama) -->
-    @if (ignisService.activeLayer() === 'all' || ignisService.activeLayer() === 'sensors') {
+    <!-- Sensores Flotantes Proyectados en Coordenadas de Pantalla (Modo Síntesis Óptica) -->
+    @if (ignisService.activeLayer() === 'all') {
       <div class="projected-sensors-overlay">
         @for (s of projectedSensors(); track s.id) {
           @if (s.visible) {
@@ -170,42 +184,46 @@
     }
   </div>
 
-  <!-- 3. Footer de Métricas Físicas FUERA de la Arena 3D -->
+  <!-- 3. Footer de Métricas Físicas s-Flame ACME (NASA CIR / ISS) -->
   <div class="viewport-footer-metrics">
     <div class="metrics-cluster">
-      <div class="metric-block">
-        <span class="metric-label">Propagación:</span>
-        <span class="metric-val">{{ ignisService.telemetry().flameSpreadVelocityCmS }} cm/s</span>
+      <div class="metric-block" title="Radio estequiométrico de llama esférica s-Flame (Sección 9.1)">
+        <span class="metric-label">Radio Llama r_f:</span>
+        <span class="metric-val">{{ ignisService.telemetry().flameRadiusMm }} mm</span>
       </div>
       <div class="cluster-divider"></div>
-      <div class="metric-block">
+      <div class="metric-block" title="Temperatura pico del frente de llama en Kelvin (Sección 9.2)">
+        <span class="metric-label">T_max:</span>
+        <span class="metric-val">{{ ignisService.telemetry().maxFlameTempK }} K <small class="metric-sub-val">({{ ignisService.telemetry().thermocoupleTempC }} °C)</small></span>
+      </div>
+      <div class="cluster-divider"></div>
+      <div class="metric-block" title="Tasa de liberación de calor exotérmico químico (Sección 9.3)">
+        <span class="metric-label">q̇_chem:</span>
+        <span class="metric-val">{{ ignisService.telemetry().heatReleaseChemKw }} kW</span>
+      </div>
+      <div class="cluster-divider"></div>
+      <div class="metric-block" title="Pérdida volumétrica radiativa por gases CO2/H2O (Sección 9.4)">
+        <span class="metric-label">q̇_rad:</span>
+        <span class="metric-val">{{ ignisService.telemetry().radiativeLossKw }} kW</span>
+      </div>
+      <div class="cluster-divider"></div>
+      <div class="metric-block" title="Balance térmico neto q_net = q_chem - q_rad (Criterio de extinción 9.5)">
+        <span class="metric-label">Balance Neto:</span>
+        <span class="metric-val" [class.danger]="ignisService.telemetry().netThermalBalanceKw <= 0">
+          {{ ignisService.telemetry().netThermalBalanceKw > 0 ? '+' : '' }}{{ ignisService.telemetry().netThermalBalanceKw }} kW
+        </span>
+      </div>
+      <div class="cluster-divider"></div>
+      <div class="metric-block" title="Probabilidad física de extinción radiativa o convectiva">
         <span class="metric-label">Extinción:</span>
         <span class="metric-val" [class.danger]="ignisService.telemetry().flameExtinctionProb > 0.5">
           {{ (ignisService.telemetry().flameExtinctionProb * 100).toFixed(0) }}%
         </span>
       </div>
-      <div class="cluster-divider"></div>
-      <div class="metric-block">
-        <span class="metric-label">Presión:</span>
-        <span class="metric-val">
-          {{ ignisService.scenario().pressureKpa }} kPa 
-          <small class="metric-sub-val">(ΔP: {{ ignisService.telemetry().gaugePressureKpa }} kPa)</small>
-        </span>
-      </div>
-      <div class="cluster-divider"></div>
-      <div class="metric-block">
-        <span class="metric-label">P_O₂:</span>
-        <span class="metric-val">{{ ignisService.telemetry().partialPressureO2Kpa }} kPa</span>
-      </div>
-      <div class="cluster-divider"></div>
-      <div class="metric-block">
-        <span class="metric-label">Re:</span>
-        <span class="metric-val">{{ ignisService.telemetry().reynoldsNumber }}</span>
-      </div>
     </div>
 
     <div class="footer-caption">
-      <span>Datos experimentales NASA C-1998-485 / BASS-II / FLEX · Quimioluminiscencia esférica</span>
+      <span>Gemelo Digital s-Flame (ACME NASA) · Navier-Stokes bajo Mach, Arrhenius y Transferencia Radiativa RTE</span>
     </div>
   </div>
 </div>

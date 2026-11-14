@@ -13,6 +13,7 @@
     <div class="topbar-actions">
       <div class="presets-group">
         <span class="presets-title">Preajustes:</span>
+        <button type="button" class="preset-pill acme" (click)="applyPreset('sflame-acme')">s-Flame (ACME)</button>
         <button type="button" class="preset-pill" (click)="applyPreset('saffire-vi')">Saffire VI</button>
         <button type="button" class="preset-pill" (click)="applyPreset('bass-extinction')">BASS-II</button>
         <button type="button" class="preset-pill" (click)="applyPreset('exploration-atm')">Exploración</button>
@@ -78,13 +79,39 @@
       </span>
     </div>
 
-    <!-- 2. SELECTOR DE COMBUSTIBLE SÓLIDO ESPACIAL -->
+    <!-- 2. GEOMETRÍA DEL QUEMADOR: s-Flame Poroso vs Muestra Sólida -->
     <div class="form-row">
       <div class="label-box">
-        <label class="field-label">Material combustible (NASA Flight Qualified)</label>
-        <span class="field-val-badge">{{ ignisService.scenario().material }}</span>
+        <label class="field-label">Aparato experimental (NASA ACME / Saffire)</label>
+        <span class="field-val-badge">
+          {{ ignisService.scenario().burnerGeometry === 'sflame-sphere' ? 'Esfera Porosa (s-Flame)' : 'Muestra Sólida' }}
+        </span>
       </div>
       <div class="ios-segmented full-width">
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().burnerGeometry === 'sflame-sphere'"
+          (click)="setBurnerGeometry('sflame-sphere')">
+          Quemador Esférico s-Flame (ACME)
+        </button>
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().burnerGeometry === 'solid-flat'"
+          (click)="setBurnerGeometry('solid-flat')">
+          Muestra Sólida (BASS / Saffire)
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. SELECTOR DE COMBUSTIBLE ESPACIAL (s-Flame Gaseoso + Sólidos NASA) -->
+    <div class="form-row">
+      <div class="label-box">
+        <label class="field-label">Combustible ensayado (NASA Flight Qualified)</label>
+        <span class="field-val-badge">{{ ignisService.scenario().material }}</span>
+      </div>
+      <div class="ios-segmented full-width materials-segments">
         @for (mat of materials; track mat) {
           <button 
             type="button" 

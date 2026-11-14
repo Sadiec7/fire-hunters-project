@@ -1,4 +1,6 @@
-export type MaterialType = 'PMMA' | 'SIBAL' | 'Nomex' | 'Delrin' | 'Silicone';
+export type MaterialType = 'Etileno (C₂H₄)' | 'Metano (CH₄)' | 'PMMA' | 'SIBAL' | 'Nomex' | 'Delrin' | 'Silicone';
+export type BurnerGeometryType = 'sflame-sphere' | 'solid-flat';
+export type VisualLayerType = 'all' | 'flame' | 'temperature' | 'radiation' | 'soot';
 export type FlowDirectionType = 'concurrent' | 'opposed';
 export type FireRiskLevel = 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' | 'EXTINCT';
 export type GravityMode = 'micro-quiescent' | 'micro-active' | 'micro-rcs' | 'earth-1g';
@@ -7,6 +9,7 @@ export type UnitsSystem = 'si' | 'imperial';
 
 export interface PhysicalScenario {
   material: MaterialType;
+  burnerGeometry: BurnerGeometryType; // Quemador esférico poroso (s-Flame ACME) vs muestra plana
   oxygenFraction: number;      // 18% - 40% molar
   pressureKpa: number;         // 0 kPa (vacío) a 105 kPa (1 atm)
   flowVelocity: number;        // 0 cm/s - 35 cm/s
@@ -100,5 +103,12 @@ export interface SensorTelemetry {
   damkohlerNumber: number;        // Da = tau_flow / tau_chem (régimen de combustión vs apagado)
   nasaStd6001Status: 'PASSED' | 'MARGINAL' | 'FAILED'; // Criterio de inflamabilidad NASA-STD-6001 Test 1
   gravityG: number;               // Nivel de gravedad efectivo en g (1e-6 a 1.0)
+  // Variables Físicas de s-Flame (NASA ACME)
+  flameRadiusMm: number;          // Radio de llama esférica r_f (mm) según difusión-convección
+  burnerRadiusMm: number;         // Radio del quemador poroso esférico r_s = 6.35 mm
+  maxFlameTempK: number;          // Temperatura pico de llama en Kelvin (Sección 9.2)
+  heatReleaseChemKw: number;      // Tasa de liberación de calor exotérmico q_chem (kW) (Sección 9.3)
+  radiativeLossKw: number;        // Pérdida volumétrica radiativa q_rad (kW) (Sección 9.4)
+  netThermalBalanceKw: number;    // Balance térmico neto q_net = q_chem - q_rad (Sección 9.5)
   history: TelemetryPoint[];      // Registro temporal para telemetría interactiva en vivo
 }

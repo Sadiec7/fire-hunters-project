@@ -105,6 +105,15 @@
       border-color: var(--accent-blue);
     }
 
+    &.acme {
+      border-color: rgba(50, 173, 230, 0.45);
+      color: var(--accent-cyan);
+
+      &:hover {
+        background: rgba(50, 173, 230, 0.15);
+      }
+    }
+
     &.alert {
       border-color: rgba(255, 69, 58, 0.4);
       color: var(--accent-red);
@@ -490,6 +499,17 @@
           color: var(--text-secondary);
         }
       }
+    }
+  }
+
+  &.materials-segments {
+    flex-wrap: wrap;
+
+    .segment-btn {
+      flex: 1 1 22%;
+      min-width: 58px;
+      font-size: 0.67rem;
+      padding: 5px 3px;
     }
   }
 }
