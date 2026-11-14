@@ -31,7 +31,7 @@ Al ejecutar este comando:
 | **Frontend** | [http://localhost:4200](http://localhost:4200) | Puerto `4200` | Interfaz web en Angular |
 | **Backend API** | [http://localhost:3000](http://localhost:3000) | Puerto `3000` | API Express |
 | **Test Base de Datos** | [http://localhost:3000/db-status](http://localhost:3000/db-status) | Puerto `3000` | Endpoint para verificar el estado de PostgreSQL |
-| **PostgreSQL** | `localhost:5432` | User: `postgres`<br>Password: `postgres`<br>DB: `fire_hunters_db` | Servidor de base de datos relacional |
+| **PostgreSQL** | `localhost:5433` | User: `postgres`<br>Password: `postgres`<br>DB: `fire_hunters_db` | Servidor de base de datos relacional (puerto 5433 para evitar colisión con Postgres local) |
 
 ---
 
@@ -74,14 +74,14 @@ environment:
 ```
 
 ### 3. Conectarte a la base de datos desde tu PC (DBeaver, TablePlus, pgAdmin, VS Code)
-Como el puerto `5432` está expuesto a tu máquina, puedes conectarte con cualquier gestor de bases de datos usando estos datos:
+Como el puerto `5433` está expuesto a tu máquina (para evitar colisión si ya tienes otro PostgreSQL instalado en el 5432), puedes conectarte con cualquier gestor de bases de datos usando estos datos:
 
 - **Host**: `localhost` (o `127.0.0.1`)
-- **Puerto**: `5432`
+- **Puerto**: `5433`
 - **Usuario**: `postgres`
 - **Contraseña**: `postgres`
 - **Base de datos**: `fire_hunters_db`
-- **Cadena de conexión directa**: `postgresql://postgres:postgres@localhost:5432/fire_hunters_db`
+- **Cadena de conexión directa**: `postgresql://postgres:postgres@localhost:5433/fire_hunters_db`
 
 ### 4. Ejecución local del Backend sin Docker
 Si necesitas ejecutar solo el backend fuera de Docker (`cd back && npm start`):

@@ -1,0 +1,271 @@
+.evidence-box {
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  position: relative;
+
+  &.critical-state {
+    border-left: 4px solid var(--accent-orange);
+  }
+}
+
+.evidence-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+
+  .id-tag {
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .conf-badge {
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    padding: 3px 8px;
+    border-radius: 6px;
+
+    strong {
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+  }
+}
+
+.evidence-headline {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+}
+
+.quick-stats-row {
+  display: flex;
+  gap: 10px;
+
+  .stat-pill {
+    background: var(--bg-secondary);
+    padding: 6px 12px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+
+    .pill-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .pill-number {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+
+      &.alert {
+        color: var(--accent-red);
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   CADENA CAUSAL MINIMALISTA
+   ========================================================================== */
+.causal-timeline {
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+}
+
+.timeline-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  .timeline-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--accent-orange);
+  }
+}
+
+.timeline-nodes {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+
+  .node-connector {
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+
+    .chevron-icon {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  .node-item {
+    flex: 1;
+    min-width: 160px;
+    background: var(--bg-card-solid);
+    border: 1px solid var(--border-subtle);
+    padding: 10px 12px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .node-step {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      font-family: var(--font-mono);
+    }
+
+    .node-text {
+      font-size: 0.76rem;
+      line-height: 1.35;
+      color: var(--text-primary);
+    }
+
+    &.highlight-node {
+      border-color: var(--accent-orange);
+      background: var(--accent-orange-subtle);
+
+      .node-step {
+        color: var(--accent-orange);
+      }
+    }
+  }
+}
+
+/* Grilla de Evidencia */
+.grounding-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ground-point {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+
+  .ground-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .ground-value {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+
+    &.nasa-accent {
+      color: var(--accent-blue);
+    }
+  }
+
+  .ground-body {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+}
+
+.extrapolation-card {
+  background: var(--accent-orange-subtle);
+  border: 1px solid rgba(255, 149, 0, 0.2);
+  padding: 14px 16px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .extrap-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .alert-icon {
+      width: 14px;
+      height: 14px;
+      color: var(--accent-orange);
+    }
+
+    .extrap-title {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--accent-orange);
+    }
+  }
+
+  .extrap-text {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+  }
+
+  .tags-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    .tag-pill {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      background: var(--bg-card-solid);
+      border: 1px solid var(--border-subtle);
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: var(--text-secondary);
+    }
+  }
+}
+
+/* Acciones al pie */
+.action-footer {
+  display: flex;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .grounding-grid {
+    grid-template-columns: 1fr;
+  }
+  .timeline-nodes {
+    flex-direction: column;
+    .node-connector {
+      justify-content: center;
+      transform: rotate(90deg);
+    }
+  }
+}

@@ -1,0 +1,178 @@
+.controls-card {
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.card-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.topbar-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .heading-icon {
+    color: var(--accent-orange);
+    width: 15px;
+    height: 15px;
+  }
+
+  .topbar-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+}
+
+.presets-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .presets-title {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .preset-pill {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+  }
+}
+
+.controls-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.field-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.field-val-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent-blue);
+  background: var(--accent-blue-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.field-metric {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+
+  &.highlight {
+    color: var(--accent-orange);
+  }
+}
+
+.full-width {
+  width: 100%;
+  display: flex;
+
+  .segment-btn {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
+   SLIDERS ESTILO APPLE iOS
+   ========================================================================== */
+.slider-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.apple-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-secondary);
+  outline: none;
+  transition: background 0.2s ease;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+    border: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      transform: scale(1.15);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    &:active {
+      transform: scale(1.05);
+    }
+  }
+
+  &.orange-track::-webkit-slider-thumb {
+    box-shadow: 0 1px 4px rgba(255, 149, 0, 0.4), 0 0 0 1.5px var(--accent-orange);
+  }
+
+  &.blue-track::-webkit-slider-thumb {
+    box-shadow: 0 1px 4px rgba(0, 113, 227, 0.4), 0 0 0 1.5px var(--accent-blue);
+  }
+}
+
+.range-markers {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.67rem;
+  color: var(--text-muted);
+
+  .key-mark {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+}

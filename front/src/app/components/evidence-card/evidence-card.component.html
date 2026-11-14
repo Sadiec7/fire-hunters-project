@@ -1,0 +1,149 @@
+<div class="evidence-box ios-card" [class.critical-state]="ignisService.evidenceCard().risk === 'CRITICAL'">
+  <!-- Cabecera de la tarjeta -->
+  <div class="evidence-header">
+    <div class="header-left-col">
+      <div class="meta-row">
+        <span class="id-tag">{{ ignisService.evidenceCard().id }}</span>
+        <span class="ios-badge" [ngClass]="{
+          'danger': ignisService.evidenceCard().risk === 'CRITICAL',
+          'warning': ignisService.evidenceCard().risk === 'HIGH',
+          'success': ignisService.evidenceCard().risk === 'LOW'
+        }">
+          Riesgo: {{ ignisService.evidenceCard().risk }}
+        </span>
+        <span class="conf-badge">
+          Confianza: <strong>{{ (ignisService.evidenceCard().confidence * 100).toFixed(0) }}%</strong>
+        </span>
+      </div>
+      <h2 class="evidence-headline">{{ ignisService.evidenceCard().title }}</h2>
+    </div>
+
+    <!-- Indicadores cuantitativos estilo Apple Watch / Fitness -->
+    <div class="quick-stats-row">
+      <div class="stat-pill">
+        <span class="pill-label">Calor liberado</span>
+        <span class="pill-number">{{ ignisService.evidenceCard().heatReleaseKw }} kW</span>
+      </div>
+      <div class="stat-pill">
+        <span class="pill-label">Monóxido de carbono</span>
+        <span class="pill-number" [class.alert]="ignisService.evidenceCard().coPpm > 40">
+          {{ ignisService.evidenceCard().coPpm }} ppm
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CADENA CAUSAL MECANICISTA (Sin emojis, pasos claros y minimalistas) -->
+  <div class="causal-timeline">
+    <div class="timeline-title">
+      <svg class="icon-svg timeline-icon" viewBox="0 0 24 24">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+      </svg>
+      <span>Cadena causal inferida</span>
+    </div>
+
+    <div class="timeline-nodes">
+      <div class="node-item">
+        <span class="node-step">01. Condiciones</span>
+        <p class="node-text">{{ ignisService.evidenceCard().causalChain.conditions }}</p>
+      </div>
+
+      <div class="node-connector">
+        <svg class="icon-svg chevron-icon" viewBox="0 0 24 24">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </div>
+
+      <div class="node-item">
+        <span class="node-step">02. Mecanismo Físico</span>
+        <p class="node-text">{{ ignisService.evidenceCard().causalChain.physicalMechanism }}</p>
+      </div>
+
+      <div class="node-connector">
+        <svg class="icon-svg chevron-icon" viewBox="0 0 24 24">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </div>
+
+      <div class="node-item">
+        <span class="node-step">03. Observación NASA</span>
+        <p class="node-text">{{ ignisService.evidenceCard().causalChain.observations }}</p>
+      </div>
+
+      <div class="node-connector">
+        <svg class="icon-svg chevron-icon" viewBox="0 0 24 24">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </div>
+
+      <div class="node-item highlight-node">
+        <span class="node-step">04. Resultado</span>
+        <p class="node-text">{{ ignisService.evidenceCard().causalChain.outcome }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fundamento empírico y advertencias de extrapolación -->
+  <div class="grounding-grid">
+    <div class="grounding-column">
+      <div class="ground-point">
+        <span class="ground-label">Evidencia directa:</span>
+        <span class="ground-value nasa-accent">{{ ignisService.evidenceCard().directEvidence }}</span>
+      </div>
+      <div class="ground-point">
+        <span class="ground-label">Evidencia análoga:</span>
+        <span class="ground-value">{{ ignisService.evidenceCard().analogousEvidence }}</span>
+      </div>
+      <div class="ground-point">
+        <span class="ground-label">Análisis contrafactual:</span>
+        <p class="ground-body">{{ ignisService.evidenceCard().counterfactual }}</p>
+      </div>
+    </div>
+
+    <div class="grounding-column">
+      <div class="extrapolation-card">
+        <div class="extrap-head">
+          <svg class="icon-svg alert-icon" viewBox="0 0 24 24">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span class="extrap-title">Límites de extrapolación</span>
+        </div>
+        <p class="extrap-text">{{ ignisService.evidenceCard().warning }}</p>
+        <div class="tags-cluster">
+          @for (tag of ignisService.evidenceCard().extrapolatedVars; track tag) {
+            <span class="tag-pill">Variable no ensayada: {{ tag }}</span>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de Acción Científica estilo iOS -->
+  <div class="action-footer">
+    <button type="button" class="ios-btn primary" (click)="openDrawer('evidence')">
+      <svg class="icon-svg btn-icon" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <span>Consultar Evidencia Experimental</span>
+    </button>
+
+    <button type="button" class="ios-btn danger" (click)="openDrawer('challenge')">
+      <svg class="icon-svg btn-icon" viewBox="0 0 24 24">
+        <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
+        <path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path>
+        <circle cx="8" cy="12" r="2"></circle>
+      </svg>
+      <span>Evaluar Contraejemplo Físico</span>
+    </button>
+
+    <button type="button" class="ios-btn secondary" (click)="openDrawer('next-test')">
+      <svg class="icon-svg btn-icon" viewBox="0 0 24 24">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      <span>Sugerir Siguiente Ensayo</span>
+    </button>
+  </div>
+</div>

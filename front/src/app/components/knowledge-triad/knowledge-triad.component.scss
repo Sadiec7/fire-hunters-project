@@ -1,0 +1,141 @@
+.triad-wrapper {
+  margin-bottom: 20px;
+}
+
+.triad-headline-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .headline-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .triad-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--accent-blue);
+    }
+
+    .triad-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+  }
+
+  .triad-caption {
+    font-size: 0.73rem;
+    color: var(--text-muted);
+  }
+}
+
+.triad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.triad-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.col-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+
+  .header-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+
+    &.green-dot { background: var(--accent-green); }
+    &.blue-dot { background: var(--accent-blue); }
+    &.orange-dot { background: var(--accent-orange); }
+  }
+
+  h4 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .source-tag {
+    margin-left: auto;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+  }
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.evidence-entry {
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: var(--bg-tertiary);
+  }
+
+  &.warning-entry {
+    background: var(--accent-orange-subtle);
+  }
+}
+
+.entry-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .conf-mono {
+    font-size: 0.68rem;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+}
+
+.entry-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.entry-desc {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.entry-origin {
+  font-size: 0.67rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+@media (max-width: 900px) {
+  .triad-grid {
+    grid-template-columns: 1fr;
+  }
+}

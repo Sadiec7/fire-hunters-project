@@ -1,0 +1,134 @@
+<div class="controls-card ios-card">
+  <div class="card-topbar">
+    <div class="topbar-heading">
+      <svg class="icon-svg heading-icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+      <h3 class="topbar-title">Variables del Escenario</h3>
+    </div>
+
+    <!-- Preajustes discretos estilo Apple -->
+    <div class="presets-group">
+      <span class="presets-title">Preajustes:</span>
+      <button type="button" class="preset-pill" (click)="applyPreset('saffire-vi')">Saffire VI</button>
+      <button type="button" class="preset-pill" (click)="applyPreset('bass-extinction')">BASS-II</button>
+      <button type="button" class="preset-pill" (click)="applyPreset('exploration-atm')">Exploración</button>
+    </div>
+  </div>
+
+  <div class="controls-flow">
+    <!-- Selector de combustible con Segmented Control de Apple -->
+    <div class="form-row">
+      <div class="label-box">
+        <label class="field-label">Combustible sólido</label>
+        <span class="field-val-badge">{{ ignisService.scenario().material }}</span>
+      </div>
+      <div class="ios-segmented full-width">
+        @for (mat of materials; track mat) {
+          <button 
+            type="button" 
+            class="segment-btn" 
+            [class.active]="ignisService.scenario().material === mat"
+            (click)="setMaterial(mat)">
+            {{ mat }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Slider Oxígeno O2 -->
+    <div class="form-row">
+      <div class="label-box">
+        <label class="field-label">Concentración de oxígeno (O₂)</label>
+        <span class="field-metric" [class.highlight]="ignisService.scenario().oxygenFraction >= 30">
+          {{ ignisService.scenario().oxygenFraction }}%
+        </span>
+      </div>
+      <div class="slider-wrapper">
+        <input 
+          type="range" 
+          class="apple-range orange-track" 
+          min="18" 
+          max="38" 
+          step="0.5"
+          [value]="ignisService.scenario().oxygenFraction"
+          (input)="onOxygenChange($event)" />
+        <div class="range-markers">
+          <span>18% (Límite)</span>
+          <span class="key-mark">30% (Saffire)</span>
+          <span>38%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slider Presión de Cabina -->
+    <div class="form-row">
+      <div class="label-box">
+        <label class="field-label">Presión ambiental</label>
+        <span class="field-metric">{{ ignisService.scenario().pressureKpa }} kPa</span>
+      </div>
+      <div class="slider-wrapper">
+        <input 
+          type="range" 
+          class="apple-range blue-track" 
+          min="40" 
+          max="101.3" 
+          step="1"
+          [value]="ignisService.scenario().pressureKpa"
+          (input)="onPressureChange($event)" />
+        <div class="range-markers">
+          <span>40 kPa</span>
+          <span class="key-mark">55 kPa (Cabina)</span>
+          <span>101.3 kPa (1 atm)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slider Flujo de Aire -->
+    <div class="form-row">
+      <div class="label-box">
+        <label class="field-label">Velocidad de ventilación forzada</label>
+        <span class="field-metric">{{ ignisService.scenario().flowVelocity }} cm/s</span>
+      </div>
+      <div class="slider-wrapper">
+        <input 
+          type="range" 
+          class="apple-range" 
+          min="0" 
+          max="35" 
+          step="1"
+          [value]="ignisService.scenario().flowVelocity"
+          (input)="onFlowChange($event)" />
+        <div class="range-markers">
+          <span>0 (Estático)</span>
+          <span class="key-mark">20 cm/s</span>
+          <span>35 cm/s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggle de Dirección de Flujo -->
+    <div class="form-row">
+      <div class="label-box">
+        <label class="field-label">Dirección del oxidante</label>
+      </div>
+      <div class="ios-segmented full-width">
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().flowDirection === 'concurrent'"
+          (click)="setFlowDirection('concurrent')">
+          Concurrente (Precalentamiento)
+        </button>
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().flowDirection === 'opposed'"
+          (click)="setFlowDirection('opposed')">
+          Opuesto (Disipación convectiva)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

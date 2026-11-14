@@ -1,0 +1,72 @@
+<header class="ios-header ios-card">
+  <div class="header-left">
+    <div class="brand">
+      <div class="brand-symbol">
+        <svg class="icon-flame" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C9.5 6 7 8.5 7 12C7 15.5 9.5 19 12 22C14.5 19 17 15.5 17 12C17 8.5 14.5 6 12 2Z" fill="url(#appleFlame)" />
+          <path d="M12 10C11 11.8 10 13 10 14.8C10 16.5 11 18 12 19.5C13 18 14 16.5 14 14.8C14 13 13 11.8 12 10Z" fill="url(#appleCore)" />
+          <defs>
+            <linearGradient id="appleFlame" x1="12" y1="2" x2="12" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#FF9500" />
+              <stop offset="1" stop-color="#FF3B30" />
+            </linearGradient>
+            <linearGradient id="appleCore" x1="12" y1="10" x2="12" y2="19.5" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#64D2FF" />
+              <stop offset="1" stop-color="#0071E3" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <div class="brand-text">
+        <div class="title-row">
+          <span class="product-name">IGNIS-Ω</span>
+          <span class="ios-badge blue">NASA Space Apps</span>
+          <span class="ios-badge">Flame in Freefall</span>
+        </div>
+        <p class="product-caption">Causal Fire Intelligence for Spacecraft · Microgravity Combustion</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <!-- Telemetría discreta -->
+    <div class="status-pill">
+      <span class="live-dot"></span>
+      <span class="status-label">µg (10⁻⁴ g)</span>
+    </div>
+
+    <div class="dataset-pill">
+      <span>Datasets:</span>
+      <strong>PSI-69 / PSI-25 / PSI-98</strong>
+    </div>
+
+    <!-- Toggle Modo Oscuro / Claro estilo iOS -->
+    <button 
+      type="button" 
+      class="theme-toggle-btn" 
+      (click)="ignisService.toggleTheme()"
+      [attr.aria-label]="ignisService.isDarkMode() ? 'Activar modo claro' : 'Activar modo oscuro'"
+      title="Cambiar tema">
+      @if (ignisService.isDarkMode()) {
+        <!-- Icono Sol (vectorial) -->
+        <svg class="icon-svg" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      } @else {
+        <!-- Icono Luna (vectorial) -->
+        <svg class="icon-svg" viewBox="0 0 24 24">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      }
+    </button>
+  </div>
+</header>

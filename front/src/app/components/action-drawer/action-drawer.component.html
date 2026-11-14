@@ -1,0 +1,208 @@
+@if (ignisService.activeDrawer(); as drawerType) {
+  <div class="sheet-backdrop" (click)="close()">
+    <div class="sheet-panel" (click)="$event.stopPropagation()">
+      <!-- Cabecera de la hoja estilo macOS / iOS Sheet -->
+      <div class="sheet-topbar">
+        <div class="sheet-title-group">
+          @if (drawerType === 'evidence') {
+            <svg class="icon-svg sheet-icon" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <h3>Trazabilidad Experimental · NASA PSI</h3>
+          } @else if (drawerType === 'challenge') {
+            <svg class="icon-svg sheet-icon orange" viewBox="0 0 24 24">
+              <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
+              <path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path>
+              <circle cx="8" cy="12" r="2"></circle>
+            </svg>
+            <h3>Motor de Contraejemplos · Refutabilidad</h3>
+          } @else if (drawerType === 'next-test') {
+            <svg class="icon-svg sheet-icon blue" viewBox="0 0 24 24">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <h3>Siguiente Ensayo Experimental · Active Learning</h3>
+          }
+        </div>
+
+        <button type="button" class="sheet-close-btn" (click)="close()" aria-label="Cerrar">
+          <svg class="icon-svg close-svg" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sheet-content">
+        <!-- VISTA 1: SHOW ME THE EVIDENCE -->
+        @if (drawerType === 'evidence') {
+          <div class="view-pane">
+            <p class="view-intro">
+              Cada deducción de IGNIS-Ω se mapea contra mediciones del repositorio NASA Physical Sciences Informatics (PSI). Datos abiertos verificables:
+            </p>
+
+            <div class="dataset-card ios-card">
+              <div class="tags-row">
+                <span class="ios-badge blue">NASA PSI-98 / Saffire VI</span>
+                <span class="ios-badge success">Licencia CC0-1.0</span>
+                <span class="ios-badge">DOI 10.1016/j.combustflame</span>
+              </div>
+
+              <h4 class="card-name">Módulo Cygnus · Ensayos de combustión de combustible sólido</h4>
+              <p class="card-summary">
+                Muestra sólida ensayada en conducto de flujo forzado a 20 cm/s. Datos obtenidos mediante termopares, radiómetros Schmidt-Boelter y sensores NDIR de CO/CO₂.
+              </p>
+
+              <!-- Tabla de datos crudos -->
+              <div class="table-container">
+                <table class="ios-table">
+                  <thead>
+                    <tr>
+                      <th>Variable</th>
+                      <th>Valor medido</th>
+                      <th>Incertidumbre</th>
+                      <th>Instrumento NASA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Oxígeno (O₂)</td>
+                      <td>29.8% molar</td>
+                      <td>± 0.2%</td>
+                      <td>Zirconia O₂ Sensor</td>
+                    </tr>
+                    <tr>
+                      <td>Presión de cabina</td>
+                      <td>55.1 kPa</td>
+                      <td>± 0.5 kPa</td>
+                      <td>Piezoresistive Transducer</td>
+                    </tr>
+                    <tr>
+                      <td>Velocidad de flujo</td>
+                      <td>19.8 cm/s</td>
+                      <td>± 0.8 cm/s</td>
+                      <td>Hot-wire Anemometer</td>
+                    </tr>
+                    <tr>
+                      <td>Flujo radiativo máx.</td>
+                      <td>2.4 kW</td>
+                      <td>± 0.3 kW</td>
+                      <td>Radiómetro de banda ancha</td>
+                    </tr>
+                    <tr>
+                      <td>Pico de CO acumulado</td>
+                      <td>185 ppm</td>
+                      <td>± 10 ppm</td>
+                      <td>Sensor NDIR Infrarrojo</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="action-row">
+                <a [href]="ignisService.evidenceCard().psiUrl" target="_blank" rel="noopener noreferrer" class="ios-btn primary">
+                  <span>Abrir registro en NASA PSI (PSI-98)</span>
+                  <svg class="icon-svg" viewBox="0 0 24 24">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
+                </a>
+                <span class="hash-code">Hash SHA-256: 4f8b9e...a12c</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- VISTA 2: CHALLENGE THIS CONCLUSION (COUNTEREXAMPLE ENGINE) -->
+        @if (drawerType === 'challenge') {
+          <div class="view-pane">
+            <div class="info-banner">
+              <svg class="icon-svg banner-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <div>
+                <strong>Criterio de refutabilidad científica:</strong>
+                <p>El sistema busca el ensayo más cercano en el archivo histórico donde las mismas condiciones aparentes produjeron un resultado opuesto.</p>
+              </div>
+            </div>
+
+            <div class="counter-card ios-card">
+              <div class="counter-header">
+                <span class="ios-badge warning">Contraejemplo detectado</span>
+                <span class="counter-id">{{ ignisService.counterexample().id }}</span>
+              </div>
+              <h4 class="counter-title">{{ ignisService.counterexample().experimentTitle }}</h4>
+
+              <div class="divergence-grid">
+                <div class="divergence-box">
+                  <span class="d-label">Predicción para tu escenario:</span>
+                  <span class="d-val danger">Propagación sostenida</span>
+                </div>
+                <div class="divergence-vs">vs</div>
+                <div class="divergence-box">
+                  <span class="d-label">Resultado real de este ensayo:</span>
+                  <span class="d-val success">{{ ignisService.counterexample().contradictoryOutcome }}</span>
+                </div>
+              </div>
+
+              <div class="explanation-block">
+                <h5>¿Por qué ocurrió la diferencia física?</h5>
+                <p>{{ ignisService.counterexample().observedDifference }}</p>
+              </div>
+
+              <div class="action-row">
+                <a [href]="ignisService.counterexample().sourceUrl" target="_blank" rel="noopener noreferrer" class="ios-btn secondary">
+                  <span>Examinar en BASS-II (PSI-25)</span>
+                  <svg class="icon-svg" viewBox="0 0 24 24">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- VISTA 3: WHAT SHOULD NASA TEST NEXT? (ACTIVE LEARNING) -->
+        @if (drawerType === 'next-test') {
+          <div class="view-pane">
+            <div class="equation-box">
+              <span class="eq-label">Criterio bayesiano de muestreo de incertidumbre:</span>
+              <code class="eq-code">x* = argmax_x H[ P(Y | x) ]</code>
+              <p class="eq-sub">Optimización del siguiente punto en el espacio experimental que maximiza la reducción de entropía epistémica.</p>
+            </div>
+
+            <div class="recommendation-card ios-card">
+              <div class="rec-header">
+                <span class="ios-badge blue">Incertidumbre máxima (H = {{ ignisService.testRecommendation().uncertaintyScore }})</span>
+                <span class="reduction-label">Reducción esperada: {{ ignisService.testRecommendation().expectedEntropyReduction }}</span>
+              </div>
+
+              <h4>{{ ignisService.testRecommendation().nextTestTitle }}</h4>
+              <p class="rec-text">{{ ignisService.testRecommendation().rationale }}</p>
+
+              <div class="params-block">
+                <h5>Coordenadas físicas recomendadas:</h5>
+                <div class="params-row">
+                  <span class="param-chip">Material: <strong>{{ ignisService.testRecommendation().coordinates.material }}</strong></span>
+                  <span class="param-chip">O₂: <strong>{{ ignisService.testRecommendation().coordinates.oxygenFraction }}%</strong></span>
+                  <span class="param-chip">Presión: <strong>{{ ignisService.testRecommendation().coordinates.pressureKpa }} kPa</strong></span>
+                  <span class="param-chip">Flujo: <strong>{{ ignisService.testRecommendation().coordinates.flowVelocity }} cm/s</strong></span>
+                  <span class="param-chip">Dirección: <strong>{{ ignisService.testRecommendation().coordinates.flowDirection }}</strong></span>
+                </div>
+              </div>
+
+              <div class="action-row">
+                <button type="button" class="ios-btn primary" (click)="applyRecommendedTest()">
+                  <span>Cargar parámetros en la simulación</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
