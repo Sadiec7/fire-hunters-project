@@ -13,6 +13,7 @@
     <div class="topbar-actions">
       <div class="presets-group">
         <span class="presets-title">Preajustes:</span>
+        <button type="button" class="preset-pill acme" (click)="applyPreset('sflame-acme')">s-Flame (ACME)</button>
         <button type="button" class="preset-pill" (click)="applyPreset('saffire-vi')">Saffire VI</button>
         <button type="button" class="preset-pill" (click)="applyPreset('bass-extinction')">BASS-II</button>
         <button type="button" class="preset-pill" (click)="applyPreset('exploration-atm')">Exploración</button>
@@ -35,34 +36,42 @@
           {{ ignisService.scenario().gravityMode === 'earth-1g' ? '1.0 g (Tierra)' : ignisService.telemetry().gravityG + ' g' }}
         </span>
       </div>
-      <div class="ios-segmented full-width">
+      <div class="ios-segmented full-width gravity-segments">
         <button 
           type="button" 
           class="segment-btn" 
           [class.active]="ignisService.scenario().gravityMode === 'micro-quiescent'"
-          (click)="setGravityMode('micro-quiescent')">
-          10⁻⁶ g (ISS Quiescente)
+          (click)="setGravityMode('micro-quiescent')"
+          title="Microgravedad Quiescente (ISS: 10⁻⁶ g)">
+          <span class="seg-val">10⁻⁶ g</span>
+          <span class="seg-sub">ISS Quiesc.</span>
         </button>
         <button 
           type="button" 
           class="segment-btn" 
           [class.active]="ignisService.scenario().gravityMode === 'micro-active'"
-          (click)="setGravityMode('micro-active')">
-          10⁻⁴ g (ISS Nominal)
+          (click)="setGravityMode('micro-active')"
+          title="Microgravedad Nominal (ISS: 10⁻⁴ g)">
+          <span class="seg-val">10⁻⁴ g</span>
+          <span class="seg-sub">ISS Nominal</span>
         </button>
         <button 
           type="button" 
           class="segment-btn" 
           [class.active]="ignisService.scenario().gravityMode === 'micro-rcs'"
-          (click)="setGravityMode('micro-rcs')">
-          10⁻² g (Maniobra RCS)
+          (click)="setGravityMode('micro-rcs')"
+          title="Maniobra RCS (10⁻² g)">
+          <span class="seg-val">10⁻² g</span>
+          <span class="seg-sub">Maniobra RCS</span>
         </button>
         <button 
           type="button" 
           class="segment-btn" 
           [class.active]="ignisService.scenario().gravityMode === 'earth-1g'"
-          (click)="setGravityMode('earth-1g')">
-          1.0 g (Tierra - Convección)
+          (click)="setGravityMode('earth-1g')"
+          title="Gravedad Terrestre (1.0 g - Convección boyante)">
+          <span class="seg-val">1.0 g</span>
+          <span class="seg-sub">Tierra (1-g)</span>
         </button>
       </div>
       <span class="field-hint">
@@ -70,13 +79,39 @@
       </span>
     </div>
 
-    <!-- 2. SELECTOR DE COMBUSTIBLE SÓLIDO ESPACIAL -->
+    <!-- 2. GEOMETRÍA DEL QUEMADOR: s-Flame Poroso vs Muestra Sólida -->
     <div class="form-row">
       <div class="label-box">
-        <label class="field-label">Material combustible (NASA Flight Qualified)</label>
-        <span class="field-val-badge">{{ ignisService.scenario().material }}</span>
+        <label class="field-label">Aparato experimental (NASA ACME / Saffire)</label>
+        <span class="field-val-badge">
+          {{ ignisService.scenario().burnerGeometry === 'sflame-sphere' ? 'Esfera Porosa (s-Flame)' : 'Muestra Sólida' }}
+        </span>
       </div>
       <div class="ios-segmented full-width">
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().burnerGeometry === 'sflame-sphere'"
+          (click)="setBurnerGeometry('sflame-sphere')">
+          Quemador Esférico s-Flame (ACME)
+        </button>
+        <button 
+          type="button" 
+          class="segment-btn" 
+          [class.active]="ignisService.scenario().burnerGeometry === 'solid-flat'"
+          (click)="setBurnerGeometry('solid-flat')">
+          Muestra Sólida (BASS / Saffire)
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. SELECTOR DE COMBUSTIBLE ESPACIAL (s-Flame Gaseoso + Sólidos NASA) -->
+    <div class="form-row">
+      <div class="label-box">
+        <label class="field-label">Combustible ensayado (NASA Flight Qualified)</label>
+        <span class="field-val-badge">{{ ignisService.scenario().material }}</span>
+      </div>
+      <div class="ios-segmented full-width materials-segments">
         @for (mat of materials; track mat) {
           <button 
             type="button" 
@@ -138,14 +173,14 @@
         </div>
         <div class="metrics-dual">
           @if (ignisService.scenario().isVentingToSpace) {
-            <span class="field-metric danger">0.0 kPa (Vacío Espacial)</span>
-            <span class="metric-sub alert">ΔP: -101.3 kPa · Purga Activa</span>
+            <span class="field-metric danger">0.0 kPa (Vacío)</span>
+            <span class="metric-sub alert">ΔP: -101.3 kPa · Purga</span>
           } @else if (ignisService.scenario().pressureMode === 'absolute') {
             <span class="field-metric">
               {{ ignisService.scenario().unitsSystem === 'si' ? ignisService.scenario().pressureKpa + ' kPa' : ignisService.telemetry().pressurePsia + ' psia' }}
             </span>
             <span class="metric-sub">
-              ΔP: {{ ignisService.telemetry().gaugePressureKpa }} kPa (Vacío relativo)
+              ΔP: {{ ignisService.telemetry().gaugePressureKpa }} kPa
             </span>
           } @else {
             <span class="field-metric negative-pressure">
@@ -168,7 +203,7 @@
           (input)="onPressureChange($event)" />
         <div class="range-markers">
           <span>0 kPa (Vacío)</span>
-          <span class="key-mark">55 kPa (Cabina Orion/Saffire)</span>
+          <span class="key-mark">55 kPa (Orion/Saffire)</span>
           <span>101.3 kPa (1 atm)</span>
         </div>
       </div>
@@ -177,7 +212,7 @@
       <div class="aero-telemetry-note">
         <span class="note-tag">[FLIGHT_NOTE]</span>
         <span class="note-text">
-          En microgravedad (ISS-MSG), la cámara se mantiene en diferencial negativo (ΔP ≈ -0.5 kPa) como contención física pasiva para evitar escape de toxinas a cabina habitable.
+          En microgravedad (ISS-MSG), la cámara se mantiene en diferencial negativo (ΔP ≈ -0.5 kPa) como contención pasiva contra fugas tóxicas.
         </span>
       </div>
 
@@ -187,13 +222,13 @@
           <button type="button" class="aero-emergency-btn restore" (click)="restoreCabinAtmosphere()">
             <span class="btn-led green"></span>
             <span class="btn-tag">[RE-PRESSURIZE]</span>
-            <span class="btn-title">Restaurar Presurización de Cabina (55.0 kPa · 8.0 psia)</span>
+            <span class="btn-title">Restaurar Presurización (55.0 kPa · 8.0 psia)</span>
           </button>
         } @else {
           <button type="button" class="aero-emergency-btn vent" (click)="triggerVacuumVenting()">
             <span class="btn-led red-blink"></span>
             <span class="btn-tag">[EMERGENCY VACUUM-VENT]</span>
-            <span class="btn-title">Purga al Vacío Espacial (0.0 kPa · ΔP: -101.3 kPa · Extinción)</span>
+            <span class="btn-title">Purga al Vacío Espacial (0.0 kPa · ΔP: -101.3 kPa)</span>
           </button>
         }
       </div>

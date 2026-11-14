@@ -1,6 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 import {
   ActiveLearningRecommendation,
+  BurnerGeometryType,
   Counterexample,
   EvidenceCard,
   GravityMode,
@@ -10,6 +11,7 @@ import {
   SensorTelemetry,
   TelemetryPoint,
   UnitsSystem,
+  VisualLayerType,
 } from '../models/ignis.model';
 
 @Injectable({
@@ -19,12 +21,13 @@ export class IgnisService {
   // Modo de color (Light / Dark estilo Apple)
   public readonly isDarkMode = signal<boolean>(false);
 
-  // Estado reactivo del escenario experimental aeroespacial
+  // Estado reactivo del escenario experimental aeroespacial (s-Flame ACME / BASS-II)
   public readonly scenario = signal<PhysicalScenario>({
-    material: 'PMMA',
-    oxygenFraction: 30, // 30% O2 (Caso Saffire VI / BASS-II)
+    material: 'Etileno (C₂H₄)',
+    burnerGeometry: 'sflame-sphere', // Quemador esférico poroso s-Flame (NASA ACME)
+    oxygenFraction: 30, // 30% O2
     pressureKpa: 55,   // 55 kPa atmósfera de cabina espacial Exploration Atmosphere
-    flowVelocity: 20,  // 20 cm/s ventilación forzada en microgravedad
+    flowVelocity: 15,  // 15 cm/s flujo laminar en microgravedad
     flowDirection: 'concurrent',
     suppressant: 'Ninguno',
     gravityMode: 'micro-quiescent',
@@ -36,8 +39,8 @@ export class IgnisService {
   // Modal / Drawer activo para las 3 acciones científicas
   public readonly activeDrawer = signal<'evidence' | 'challenge' | 'next-test' | null>(null);
 
-  // Filtro de capa visual en el gemelo 3D
-  public readonly activeLayer = signal<'all' | 'flame' | 'sensors' | 'gases'>('all');
+  // Filtro de capa visual en el gemelo digital 3D (Sección 9 ACME: campos físicos)
+  public readonly activeLayer = signal<VisualLayerType>('all');
 
   // Historial dinámico para el osciloscopio de telemetría en tiempo real
   public readonly telemetryHistory = signal<TelemetryPoint[]>([
@@ -53,11 +56,19 @@ export class IgnisService {
     this.isDarkMode.update((dark) => !dark);
   }
 
-  // Telemetría rigurosa calculada con ecuaciones de combustión en microgravedad
+  public setLayer(layer: VisualLayerType): void {
+    this.activeLayer.set(layer);
+  }
+
+  public setBurnerGeometry(geometry: BurnerGeometryType): void {
+    this.scenario.update((s) => ({ ...s, burnerGeometry: geometry }));
+  }
+
+  // Telemetría rigurosa calculada con ecuaciones de combustión en microgravedad (NASA s-Flame ACME)
   public readonly telemetry = computed<SensorTelemetry>(() => {
     const s = this.scenario();
 
-    // 1. Efecto de gravedad efectiva (g-jitter residual)
+    // 1. Efecto de gravedad efectiva (g-jitter residual - Sección 7.5)
     let gLevel = 0.000001; // 10^-6 g (Quiescente ISS)
     if (s.gravityMode === 'micro-active') gLevel = 0.0001;
     else if (s.gravityMode === 'micro-rcs') gLevel = 0.01;
@@ -80,6 +91,12 @@ export class IgnisService {
         damkohlerNumber: 0,
         nasaStd6001Status: 'PASSED',
         gravityG: gLevel,
+        flameRadiusMm: 0.0,
+        burnerRadiusMm: 6.35,
+        maxFlameTempK: 258.15,
+        heatReleaseChemKw: 0.0,
+        radiativeLossKw: 0.0,
+        netThermalBalanceKw: 0.0,
         history: this.telemetryHistory(),
       };
     }
@@ -99,24 +116,42 @@ export class IgnisService {
     const pressureFactor = pAbs / 101.3;
     const buoyancyBoost = s.gravityMode === 'earth-1g' ? 1.65 : 1.0; // Convección natural boyante en Tierra
 
-    // Temperatura de frente de llama
-    const baseTemp = 420;
-    const temp = Math.round((baseTemp + (o2Factor * 220) + (flowFactor * 65) * pressureFactor) * buoyancyBoost);
+    // Geometría del quemador s-Flame ACME: radio de esfera porosa r_s = 6.35 mm (Sección 7.1, 7.2)
+    const rBurnerMm = 6.35;
+
+    // Radio de llama esférica r_f (mm) según ecuación convectivo-difusiva analítica (Sección 3.3, 7.2)
+    // r_f = r_s * [1 + 1.85 * (21 / y_O2)^0.4 * (1 + u_flow / 35)]
+    const rfMm = Number((rBurnerMm * (1.0 + 1.82 * Math.pow(21.0 / s.oxygenFraction, 0.42) * (1.0 + s.flowVelocity / 35.0) * Math.pow(101.3 / Math.max(10.0, pAbs), 0.18))).toFixed(1));
+
+    // Temperatura de llama T_max (K y °C) según balance de entalpía (Sección 3.4, 9.2)
+    const baseTempK = s.material === 'Etileno (C₂H₄)' ? 1850 : s.material === 'Metano (CH₄)' ? 1720 : 1650;
+    const tempMaxK = Math.round((baseTempK + (o2Factor * 320) + (flowFactor * 75) * pressureFactor) * (s.gravityMode === 'earth-1g' ? 1.12 : 0.96));
+    const tempMaxC = tempMaxK - 273;
 
     // Emisiones de gases tóxicos (Monóxido y Dióxido de Carbono)
-    const matFactor = s.material === 'PMMA' ? 1.4 : s.material === 'Delrin' ? 1.25 : 1.0;
+    const matFactor = s.material === 'Etileno (C₂H₄)' ? 1.5 : s.material === 'PMMA' ? 1.4 : s.material === 'Metano (CH₄)' ? 0.7 : 1.0;
     const co = Math.round(44 * o2Factor * flowFactor * matFactor);
     const co2 = Number((0.58 * o2Factor * pressureFactor * (s.gravityMode === 'earth-1g' ? 1.4 : 1.0)).toFixed(2));
 
-    // Flujo térmico radiativo y velocidad de propagación
-    const flux = Number((1.8 * o2Factor * flowFactor * pressureFactor).toFixed(2));
+    // Tasa de liberación de calor química q_chem (kW) (Sección 9.3)
+    const qChemKw = Number((1.2 * o2Factor * flowFactor * pressureFactor * (s.material === 'Etileno (C₂H₄)' ? 1.35 : 1.0)).toFixed(2));
+
+    // Pérdida volumétrica radiativa q_rad (kW) (Sección 5, 9.4)
+    // q_rad = 4 * sigma * kappa_p * (T^4 - T_inf^4) * Vol
+    const qRadKw = Number((0.24 * Math.pow(tempMaxK / 1000.0, 4) * pressureFactor * (rfMm / 15.0)).toFixed(2));
+
+    // Balance térmico neto q_net = q_chem - q_rad (Sección 9.5)
+    const qNetKw = Number((qChemKw - qRadKw).toFixed(2));
+
+    // Flujo térmico radiativo sobre sensor y velocidad de propagación
+    const flux = Number((qRadKw * 1.85).toFixed(2));
     const spreadMult = s.flowDirection === 'concurrent' ? 1.48 : 0.42;
     const spread = Number((0.34 * o2Factor * spreadMult * (s.gravityMode === 'earth-1g' ? 2.1 : 1.0)).toFixed(2));
 
-    // Probabilidad física de extinción
+    // Criterio de Extinción Físico de s-Flame (Sección 9.5: q_chem < q_rad)
     let extinctionProb = 0.03;
-    if (s.oxygenFraction < 19.5 && s.flowVelocity < 4.0) {
-      extinctionProb = 0.94; // Extinción por pérdida radiativa (NASA ACME)
+    if (qNetKw <= 0.05 || (s.oxygenFraction < 19.5 && s.flowVelocity < 4.0)) {
+      extinctionProb = 0.95; // Extinción por pérdida radiativa (NASA ACME)
     } else if (s.oxygenFraction < 22.0 && s.flowVelocity > 24.0 && s.flowDirection === 'opposed') {
       extinctionProb = 0.72; // Extinción por soplado convectivo (Blow-off)
     } else if (pAbs < 30.0) {
@@ -131,14 +166,14 @@ export class IgnisService {
 
     // Evaluación formal según NASA-STD-6001 Test 1 (Upward Flame Propagation)
     let flammability: 'PASSED' | 'MARGINAL' | 'FAILED' = 'MARGINAL';
-    if (pO2Kpa >= 22.5 || s.oxygenFraction >= 32 || (s.material === 'PMMA' && s.oxygenFraction >= 26 && s.flowVelocity > 10)) {
+    if (pO2Kpa >= 22.5 || s.oxygenFraction >= 32 || ((s.material === 'PMMA' || s.material === 'Etileno (C₂H₄)') && s.oxygenFraction >= 26 && s.flowVelocity > 10)) {
       flammability = 'FAILED'; // Falla criterio de seguridad contra incendios en naves
     } else if (s.oxygenFraction <= 20.8 && pO2Kpa <= 17.5) {
       flammability = 'PASSED'; // Autoextinguible
     }
 
     return {
-      thermocoupleTempC: temp,
+      thermocoupleTempC: tempMaxC,
       radiometerFluxKwM2: flux,
       coPpm: co,
       co2Percent: co2,
@@ -152,6 +187,12 @@ export class IgnisService {
       damkohlerNumber: damkohler,
       nasaStd6001Status: flammability,
       gravityG: gLevel,
+      flameRadiusMm: rfMm,
+      burnerRadiusMm: rBurnerMm,
+      maxFlameTempK: tempMaxK,
+      heatReleaseChemKw: qChemKw,
+      radiativeLossKw: qRadKw,
+      netThermalBalanceKw: qNetKw,
       history: this.telemetryHistory(),
     };
   });
@@ -501,9 +542,5 @@ export class IgnisService {
 
   public closeDrawer(): void {
     this.activeDrawer.set(null);
-  }
-
-  public setLayer(layer: 'all' | 'flame' | 'sensors' | 'gases'): void {
-    this.activeLayer.set(layer);
   }
 }

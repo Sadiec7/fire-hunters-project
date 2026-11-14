@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IgnisService } from '../../core/services/ignis.service';
-import { FlowDirectionType, GravityMode, MaterialType } from '../../core/models/ignis.model';
+import { BurnerGeometryType, FlowDirectionType, GravityMode, MaterialType } from '../../core/models/ignis.model';
 
 @Component({
   selector: 'app-scenario-controls',
@@ -14,10 +14,27 @@ import { FlowDirectionType, GravityMode, MaterialType } from '../../core/models/
 export class ScenarioControlsComponent {
   public readonly ignisService = inject(IgnisService);
 
-  public readonly materials: MaterialType[] = ['PMMA', 'SIBAL', 'Nomex', 'Delrin', 'Silicone'];
+  public readonly materials: MaterialType[] = [
+    'Etileno (C₂H₄)',
+    'Metano (CH₄)',
+    'PMMA',
+    'SIBAL',
+    'Nomex',
+    'Delrin',
+    'Silicone',
+  ];
 
   public setMaterial(material: MaterialType): void {
     this.ignisService.updateMaterial(material);
+    if (material === 'Etileno (C₂H₄)' || material === 'Metano (CH₄)') {
+      this.ignisService.setBurnerGeometry('sflame-sphere');
+    } else {
+      this.ignisService.setBurnerGeometry('solid-flat');
+    }
+  }
+
+  public setBurnerGeometry(geometry: BurnerGeometryType): void {
+    this.ignisService.setBurnerGeometry(geometry);
   }
 
   public onOxygenChange(event: Event): void {
@@ -67,10 +84,19 @@ export class ScenarioControlsComponent {
     this.ignisService.exportTelemetryData();
   }
 
-  // Preajustes rápidos emblemáticos de investigaciones NASA
-  public applyPreset(preset: 'saffire-vi' | 'bass-extinction' | 'exploration-atm' | 'vacuum-quench'): void {
-    if (preset === 'saffire-vi') {
+  // Preajustes rápidos emblemáticos de investigaciones NASA (s-Flame ACME / BASS-II / Saffire)
+  public applyPreset(preset: 'sflame-acme' | 'saffire-vi' | 'bass-extinction' | 'exploration-atm' | 'vacuum-quench'): void {
+    if (preset === 'sflame-acme') {
+      this.ignisService.updateMaterial('Etileno (C₂H₄)');
+      this.ignisService.setBurnerGeometry('sflame-sphere');
+      this.ignisService.updateOxygen(30);
+      this.ignisService.updatePressure(55);
+      this.ignisService.updateFlow(12);
+      this.ignisService.updateDirection('concurrent');
+      this.ignisService.setGravityMode('micro-quiescent');
+    } else if (preset === 'saffire-vi') {
       this.ignisService.updateMaterial('PMMA');
+      this.ignisService.setBurnerGeometry('solid-flat');
       this.ignisService.updateOxygen(30);
       this.ignisService.updatePressure(55);
       this.ignisService.updateFlow(20);
@@ -78,6 +104,7 @@ export class ScenarioControlsComponent {
       this.ignisService.setGravityMode('micro-quiescent');
     } else if (preset === 'bass-extinction') {
       this.ignisService.updateMaterial('PMMA');
+      this.ignisService.setBurnerGeometry('solid-flat');
       this.ignisService.updateOxygen(19);
       this.ignisService.updatePressure(101.3);
       this.ignisService.updateFlow(4);
@@ -85,6 +112,7 @@ export class ScenarioControlsComponent {
       this.ignisService.setGravityMode('micro-quiescent');
     } else if (preset === 'exploration-atm') {
       this.ignisService.updateMaterial('SIBAL');
+      this.ignisService.setBurnerGeometry('solid-flat');
       this.ignisService.updateOxygen(32);
       this.ignisService.updatePressure(56);
       this.ignisService.updateFlow(15);
