@@ -1,0 +1,10 @@
+**/node_modules
+**/.git
+**/.angular
+**/dist
+**/.vscode
+**/venv
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+npm-debug.log

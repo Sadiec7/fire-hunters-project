@@ -1,18 +1,11 @@
-# Dependencias
 node_modules/
 /front/node_modules/
-
-# Entornos virtuales Python
 venv/
 __pycache__/
 *.pyc
-
-# Bases de datos locales
 *.db
 *.sqlite
 *.sqlite3
-
-# Compilación y logs
 dist/
 .angular/
 .env

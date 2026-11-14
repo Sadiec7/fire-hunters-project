@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./back
+    container_name: fire-hunters-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./back:/usr/app
+      - /usr/app/node_modules
+    environment:
+      - PORT=3000
+
+  frontend:
+    build: ./front
+    container_name: fire-hunters-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./front:/usr/app
+      - /usr/app/node_modules
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
