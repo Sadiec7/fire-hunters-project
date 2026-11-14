@@ -1,6 +1,24 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fire-hunters-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fire_hunters_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fire_hunters_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./back
     container_name: fire-hunters-backend
@@ -12,6 +30,14 @@ services:
       - /usr/app/node_modules
     environment:
       - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=fire_hunters_db
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   frontend:
     build: ./front
@@ -27,3 +53,6 @@ services:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend
+
+volumes:
+  postgres_data:
