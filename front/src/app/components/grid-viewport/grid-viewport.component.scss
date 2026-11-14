@@ -3,17 +3,24 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   flex: 1 1 100%;
+  box-sizing: border-box;
 }
 
 .viewport-box {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   flex: 1 1 100%;
   margin-bottom: 0;
   overflow: hidden;
   position: relative;
+  box-sizing: border-box;
 }
 
 /* 1. Cabecera fija superior */
