@@ -1,17 +1,17 @@
 <div class="viewport-box ios-card">
-  <!-- Barra superior estilo macOS / iOS -->
-  <div class="viewport-topbar">
-    <div class="title-group">
+  <!-- 1. Cabecera fija con selector de capas estilo iOS -->
+  <div class="viewport-header">
+    <div class="header-info">
       <svg class="icon-svg header-icon" viewBox="0 0 24 24">
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+        <path d="M2 12h20"></path>
       </svg>
-      <span class="topbar-title">Cámara de Combustión en Microgravedad</span>
+      <span class="header-title">Cámara de Combustión en Microgravedad</span>
       <span class="ios-badge">{{ ignisService.scenario().material }} · {{ ignisService.scenario().pressureKpa }} kPa</span>
     </div>
 
-    <!-- Segmented control de capas estilo iOS -->
+    <!-- Segmented Control de Capas estilo Apple -->
     <div class="ios-segmented">
       <button 
         type="button"
@@ -44,123 +44,105 @@
     </div>
   </div>
 
-  <!-- Escenario 3D con cuadrícula y juego de luces -->
-  <div class="viewport-arena">
-    <div class="arena-stage">
-      <!-- Piso con cuadrícula en perspectiva 3D -->
-      <div class="stage-grid-plane"></div>
-      
-      <!-- Resplandor reactivo del fuego sobre la superficie 3D -->
-      <div class="stage-thermal-glow"
-           [style.opacity]="ignisService.telemetry().flameExtinctionProb > 0.7 ? '0.12' : '0.85'">
+  <!-- 2. Arena 3D Pura: Canvas WebGL y Controles de Cámara -->
+  <div class="viewport-arena" 
+       #arenaContainer
+       (mousedown)="onPointerDown($event)"
+       (touchstart)="onPointerDown($event)"
+       (wheel)="onWheelZoom($event)">
+
+    <!-- Canvas WebGL 3D Real (Raymarching Volumétrico) -->
+    <canvas #webglCanvas class="webgl-canvas"></canvas>
+
+    <!-- Indicador de Microgravedad en Esquina Superior Izquierda -->
+    <div class="arena-badge-left">
+      <span class="pulse-dot"></span>
+      <span class="badge-text">Microgravedad (0-g) · Quimioluminiscencia</span>
+    </div>
+
+    <!-- Controles de Cámara Unificados en Esquina Superior Derecha -->
+    <div class="camera-floating-hud" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
+      <div class="hud-pill">
+        <button type="button" class="hud-icon-btn" (click)="zoomOut()" title="Alejar (-)">
+          <svg class="icon-svg" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <span class="hud-zoom-value">{{ (zoom() * 100).toFixed(0) }}%</span>
+        <button type="button" class="hud-icon-btn" (click)="zoomIn()" title="Acercar (+)">
+          <svg class="icon-svg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <span class="hud-divider"></span>
+        <button type="button" class="hud-action-btn" (click)="resetCamera()">
+          Restablecer
+        </button>
       </div>
 
-      <!-- Vector de Flujo de Aire (SVG vector en vez de flechas de texto) -->
-      <div class="airflow-indicator" [class.opposed]="ignisService.scenario().flowDirection === 'opposed'">
-        <svg class="icon-svg wind-icon" viewBox="0 0 24 24">
-          <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path>
-        </svg>
-        <span class="airflow-text">
-          Flujo {{ ignisService.scenario().flowDirection === 'concurrent' ? 'concurrente' : 'opuesto' }} 
+      <div class="hud-presets">
+        <button type="button" class="preset-btn" (click)="setCameraView('isometric')" [class.active]="rotX() === 20 && rotY() === -20">
+          3D Órbita
+        </button>
+        <button type="button" class="preset-btn" (click)="setCameraView('top')" [class.active]="rotX() === 75">
+          Cenital (90°)
+        </button>
+        <button type="button" class="preset-btn" (click)="setCameraView('side')" [class.active]="rotX() === 6">
+          Perfil
+        </button>
+      </div>
+    </div>
+
+    <!-- Indicador de Navegación en Esquina Inferior Izquierda -->
+    <div class="interaction-hint">
+      <svg class="icon-svg" viewBox="0 0 24 24">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+      </svg>
+      <span>Arrastra para rotar 360° · Rueda para zoom</span>
+    </div>
+
+    <!-- Sensores Flotantes Proyectados en Coordenadas de Pantalla (Ocultos en vista Llama) -->
+    @if (ignisService.activeLayer() === 'all' || ignisService.activeLayer() === 'sensors') {
+      <div class="projected-sensors-overlay">
+        @for (s of projectedSensors(); track s.id) {
+          @if (s.visible) {
+            <div class="sensor-pill-3d" 
+                 [style.left.px]="s.x" 
+                 [style.top.px]="s.y">
+              <span class="sensor-indicator" [class.alert]="s.isWarning"></span>
+              <div class="sensor-data">
+                <span class="sensor-title">{{ s.name }}</span>
+                <span class="sensor-reading">{{ s.value }}</span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  <!-- 3. Footer de Métricas Físicas FUERA de la Arena 3D -->
+  <div class="viewport-footer-metrics">
+    <div class="metrics-cluster">
+      <div class="metric-block">
+        <span class="metric-label">Velocidad de propagación:</span>
+        <span class="metric-val">{{ ignisService.telemetry().flameSpreadVelocityCmS }} cm/s</span>
+      </div>
+      <div class="cluster-divider"></div>
+      <div class="metric-block">
+        <span class="metric-label">Probabilidad de extinción:</span>
+        <span class="metric-val" [class.danger]="ignisService.telemetry().flameExtinctionProb > 0.5">
+          {{ (ignisService.telemetry().flameExtinctionProb * 100).toFixed(0) }}%
+        </span>
+      </div>
+      <div class="cluster-divider"></div>
+      <div class="metric-block">
+        <span class="metric-label">Flujo de oxidante:</span>
+        <span class="metric-val">
+          {{ ignisService.scenario().flowDirection === 'concurrent' ? 'Concurrente' : 'Opuesto' }} 
           ({{ ignisService.scenario().flowVelocity }} cm/s)
         </span>
       </div>
-
-      <!-- Muestra del combustible físico -->
-      <div class="fuel-specimen">
-        <div class="specimen-holder left"></div>
-        <div class="specimen-bar">
-          <span class="specimen-text">{{ ignisService.scenario().material }}</span>
-        </div>
-        <div class="specimen-holder right"></div>
-      </div>
-
-      <!-- Llama esférica de microgravedad y dinámicas de luz -->
-      @if (ignisService.activeLayer() === 'all' || ignisService.activeLayer() === 'flame') {
-        <div class="flame-rig" [ngStyle]="flameStyles()">
-          <!-- Halo térmico radiante -->
-          <div class="flame-halo"></div>
-
-          <!-- Capa exterior naranja / combustión difusiva -->
-          <div class="flame-envelope"></div>
-
-          <!-- Núcleo interior azul esférico sin convección -->
-          <div class="flame-core"></div>
-
-          <!-- Chispas y brasas mínimas -->
-          <div class="flame-sparks">
-            <span class="spark s1"></span>
-            <span class="spark s2"></span>
-            <span class="spark s3"></span>
-          </div>
-        </div>
-      }
-
-      <!-- Pluma de emisión de gases (CO / CO2) -->
-      @if (ignisService.activeLayer() === 'all' || ignisService.activeLayer() === 'gases') {
-        <div class="gas-plume" 
-             [class.opposed]="ignisService.scenario().flowDirection === 'opposed'"
-             [style.opacity]="ignisService.telemetry().coPpm > 40 ? '0.75' : '0.25'">
-          <div class="plume-puff"></div>
-          <div class="gas-capsule">
-            <span class="gas-dot"></span>
-            <span>CO: {{ ignisService.telemetry().coPpm }} ppm</span>
-          </div>
-        </div>
-      }
-
-      <!-- Red de Sensores (Cápsulas flotantes estilo iOS) -->
-      @if (ignisService.activeLayer() === 'all' || ignisService.activeLayer() === 'sensors') {
-        <div class="sensors-layer">
-          <!-- Sensor Termopar -->
-          <div class="sensor-capsule tc-pos">
-            <span class="sensor-dot"></span>
-            <div class="sensor-info">
-              <span class="sensor-title">Termopar TC-01</span>
-              <span class="sensor-value">{{ ignisService.telemetry().thermocoupleTempC }} °C</span>
-            </div>
-          </div>
-
-          <!-- Sensor Radiómetro -->
-          <div class="sensor-capsule rad-pos">
-            <span class="sensor-dot"></span>
-            <div class="sensor-info">
-              <span class="sensor-title">Radiómetro RAD-04</span>
-              <span class="sensor-value">{{ ignisService.telemetry().radiometerFluxKwM2 }} kW/m²</span>
-            </div>
-          </div>
-
-          <!-- Sensor Gases -->
-          <div class="sensor-capsule gas-pos">
-            <span class="sensor-dot warning"></span>
-            <div class="sensor-info">
-              <span class="sensor-title">Sensor CO / CO₂</span>
-              <span class="sensor-value">{{ ignisService.telemetry().coPpm }} ppm · {{ ignisService.telemetry().co2Percent }}%</span>
-            </div>
-          </div>
-        </div>
-      }
     </div>
 
-    <!-- Barra inferior informativa -->
-    <div class="viewport-bottombar">
-      <div class="stat-cluster">
-        <div class="stat-item">
-          <span class="stat-name">Velocidad de propagación:</span>
-          <span class="stat-val">{{ ignisService.telemetry().flameSpreadVelocityCmS }} cm/s</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-name">Probabilidad de extinción:</span>
-          <span class="stat-val" [class.danger]="ignisService.telemetry().flameExtinctionProb > 0.5">
-            {{ (ignisService.telemetry().flameExtinctionProb * 100).toFixed(0) }}%
-          </span>
-        </div>
-      </div>
-
-      <div class="notice-caption">
-        <span>Modelo conceptual informado por datos empíricos de NASA (no CFD)</span>
-      </div>
+    <div class="footer-caption">
+      <span>Datos empíricos NASA C-1998-485 / BASS-II / FLEX · Quimioluminiscencia azul esférica</span>
     </div>
   </div>
 </div>
