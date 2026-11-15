@@ -1,4 +1,4 @@
-# 🔥 IGNIS-μ · Flame in Freefall
+# IGNIS-μ · Flame in Freefall
 ### Probabilistic & Causal Intelligence for Microgravity Combustion
 **NASA Space Apps Challenge 2026** · Powered by NASA Physical Sciences Informatics (PSI) Open Data
 
@@ -14,7 +14,7 @@
 
 ---
 
-## 📑 Table of Contents / Tabla de Contenidos
+## Table of Contents / Tabla de Contenidos
 
 1. [English Documentation](#-english-documentation)
    - [1. Executive Summary & Vision](#1-executive-summary--vision)
@@ -418,5 +418,5 @@ Presiona el botón **`Demo Jurado (90s)`** en la barra superior para iniciar el 
 
 ---
 
-### 👨‍🚀 Créditos y Reconocimientos
+### Créditos y Reconocimientos
 Desarrollado para el **NASA Space Apps Challenge 2026** por el equipo **Fire Hunters**. Basado en datos científicos abiertos de **NASA Physical Sciences Informatics (PSI)**: ACME, BASS-II, Saffire y FLEX.
