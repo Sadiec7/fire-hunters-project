@@ -1,0 +1,95 @@
+{
+  "manifest_version": "2.0.0-EVIDENCE-TWIN",
+  "investigation_id": "PSI-23",
+  "dataset": "ACME_S_FLAME",
+  "experimental_file_key": "20013D1",
+  "experimental_conditions_summary": {
+    "fuel_bottle_text": "66.7% H2 with CH4",
+    "atmosphere_text": "~21% O2 with N4",
+    "composition_basis_verified": false,
+    "residual_gravity_m_s2": 1.0e-4,
+    "residual_gravity_tier": "GEOMETRIC_APPROXIMATION"
+  },
+  "VerificationTiersLegend": {
+    "VERIFIED_DIMENSION": "Dimension fisica verificada en documentacion experimental NASA ACME s-Flame.",
+    "GEOMETRIC_APPROXIMATION": "Coordenadas 3D aproximadas a partir de esquemas instrumentales del CIR.",
+    "ILLUSTRATIVE_ONLY": "Elementos estructurales y esteticos de contexto sin impacto en calculos."
+  },
+  "meshes": {
+    "mesh_burner_sphere": {
+      "display_name": "Quemador Poroso Esferico Sinterizado",
+      "verification_tier": "VERIFIED_DIMENSION",
+      "epistemic_tag": "OBSERVED",
+      "geometry_type": "sphere",
+      "center_m": [0.0, 0.0, 0.0],
+      "radius_m": 0.00318,
+      "diameter_mm": 6.35,
+      "support_tube_diameter_m": 0.0016,
+      "material": "Sintered Stainless Steel",
+      "provenance": "NASA ACME s-Flame Hardware Specification (r_b = 3.18 mm)"
+    },
+    "mesh_gas_inlet_mfc2": {
+      "display_name": "Linea de Alimentacion MFC2 (V -> kg/s No Verificado)",
+      "verification_tier": "GEOMETRIC_APPROXIMATION",
+      "epistemic_tag": "OBSERVED",
+      "geometry_type": "cylinder_path",
+      "start_m": [-0.045, -0.015, -0.060],
+      "end_m": [0.0, 0.0, -0.00318],
+      "tube_radius_m": 0.0008,
+      "channel_id": "mfc2_v",
+      "unit": "V",
+      "calibration_verified": false
+    },
+    "mesh_gas_inlet_mfc3": {
+      "display_name": "Linea de Alimentacion MFC3 (V -> kg/s No Verificado)",
+      "verification_tier": "GEOMETRIC_APPROXIMATION",
+      "epistemic_tag": "OBSERVED",
+      "geometry_type": "cylinder_path",
+      "start_m": [0.045, -0.015, -0.060],
+      "end_m": [0.0, 0.0, -0.00318],
+      "tube_radius_m": 0.0008,
+      "channel_id": "mfc3_v",
+      "unit": "V",
+      "calibration_verified": false
+    },
+    "mesh_tc_rake": {
+      "display_name": "Rastrillo Radial de Termopares (TCBurner, TCA, TCB, TCC)",
+      "verification_tier": "GEOMETRIC_APPROXIMATION",
+      "epistemic_tag": "GEOMETRIC_APPROXIMATION",
+      "geometry_type": "sensor_rake",
+      "sensors_included": ["TCBurner", "TCA", "TCB", "TCC"],
+      "nodes_m": {
+        "TCBurner": [0.0032, 0.0, 0.0005],
+        "TCA": [0.0080, 0.0, 0.0015],
+        "TCB": [0.0150, 0.0, 0.0025],
+        "TCC": [0.0250, 0.0, 0.0035]
+      }
+    },
+    "mesh_pmt3": {
+      "display_name": "Fotomultiplicador Quimioluminiscencia PMT3 (OH*/CH*)",
+      "verification_tier": "GEOMETRIC_APPROXIMATION",
+      "epistemic_tag": "GEOMETRIC_APPROXIMATION",
+      "geometry_type": "optical_detector",
+      "position_m": [0.0, 0.110, 0.020],
+      "line_of_sight_target_m": [0.0, 0.0, 0.0]
+    },
+    "mesh_radiometer_center": {
+      "display_name": "Radiometro Schmidt-Boelter Central (RadiometerCenter)",
+      "verification_tier": "VERIFIED_DIMENSION",
+      "epistemic_tag": "OBSERVED",
+      "geometry_type": "radiometer_detector",
+      "radial_distance_m": 0.154,
+      "position_m": [-0.154, 0.0, 0.0],
+      "line_of_sight_target_m": [0.0, 0.0, 0.0],
+      "provenance": "Distancia radial nominal documentada r = 0.154 m"
+    },
+    "mesh_cir_housing": {
+      "display_name": "Carcasa Exterior Cámara CIR (~100 L) y Bridas Opticas",
+      "verification_tier": "ILLUSTRATIVE_ONLY",
+      "epistemic_tag": "UNVERIFIED",
+      "geometry_type": "wireframe_cylinder",
+      "chamber_radius_m": 0.180,
+      "chamber_height_m": 0.360
+    }
+  }
+}
