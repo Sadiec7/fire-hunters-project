@@ -53,14 +53,21 @@
 
 .card-topbar {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  min-width: 0;
+  width: 100%;
+}
+
+.topbar-row-header {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 12px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid var(--border-subtle);
-  flex-wrap: wrap;
-  gap: 10px;
-  min-width: 0;
+  width: 100%;
+  gap: 8px;
 }
 
 .topbar-heading {
@@ -77,57 +84,66 @@
   }
 
   .topbar-title {
-    font-size: 0.84rem;
-    font-weight: 600;
+    font-size: 0.82rem;
+    font-weight: 700;
     color: var(--text-primary);
     font-family: var(--font-mono);
     letter-spacing: -0.01em;
-    text-transform: uppercase;
+    text-transform: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 }
 
-.topbar-actions {
+.presets-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.presets-group {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
   min-width: 0;
 
   .presets-title {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-family: var(--font-mono);
     color: var(--text-muted);
     text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .presets-scroll-strip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .preset-pill {
     background: var(--bg-secondary);
     border: 1px solid var(--border-subtle);
     color: var(--text-secondary);
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-family: var(--font-mono);
     font-weight: 500;
-    padding: 3px 7px;
+    padding: 2px 7px;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.12s ease;
     white-space: nowrap;
+    flex-shrink: 0;
 
     &:hover {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
+      background: var(--bg-card);
       border-color: var(--accent-blue);
+      color: var(--accent-blue);
     }
 
     &.acme {
@@ -182,13 +198,19 @@
 .simulation-subtabs {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: 6px;
   padding: 3px;
-  margin-bottom: 4px;
-  flex-wrap: wrap;
+  margin-bottom: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   .subtab-btn {
     flex: 1 1 auto;
@@ -325,6 +347,22 @@
     color: var(--accent-red);
     border-color: rgba(255, 69, 58, 0.4);
   }
+
+  &.compliance-unassessed {
+    background: rgba(255, 159, 10, 0.1);
+    color: var(--accent-orange);
+    border: 1px dashed rgba(255, 159, 10, 0.45);
+    cursor: pointer;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 159, 10, 0.2);
+      border-color: var(--accent-orange);
+      color: #fff;
+    }
+  }
 }
 
 .pressure-title-row {
@@ -347,6 +385,26 @@
   white-space: nowrap;
 
   &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.mode-text-toggle {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent-blue);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(50, 173, 230, 0.15);
+    border-color: var(--accent-blue);
     color: var(--text-primary);
   }
 }
@@ -428,6 +486,35 @@
   }
 }
 
+.flight-tip-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(50, 173, 230, 0.08);
+  border: 1px solid rgba(50, 173, 230, 0.25);
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-top: 4px;
+  box-sizing: border-box;
+  max-width: 100%;
+
+  .tip-tag {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  p {
+    font-size: 0.66rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+    margin: 0;
+  }
+}
+
 /* ==========================================================================
    BOTÓN PURGA DE VACÍO (CONSOLA DE MISIÓN - 100% RESPONSIVE)
    ========================================================================== */
@@ -491,6 +578,35 @@
       border-color: var(--accent-green);
       box-shadow: 0 0 10px rgba(48, 209, 88, 0.2);
     }
+  }
+}
+
+.vacuum-active-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(255, 69, 58, 0.08);
+  border: 1px solid rgba(255, 69, 58, 0.4);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-top: 6px;
+  box-sizing: border-box;
+  max-width: 100%;
+
+  .active-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-red);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+
+  p {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+    margin: 0;
   }
 }
 

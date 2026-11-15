@@ -1,29 +1,31 @@
 <div class="controls-card ios-card">
   <!-- Cabecera de controles estilo Apple macOS HUD -->
   <div class="card-topbar">
-    <div class="topbar-heading">
-      <svg class="icon-svg heading-icon" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-      </svg>
-      <h3 class="topbar-title">Consola Científica IGNIS-μ (NASA PSI)</h3>
-    </div>
-
-    <!-- Preajustes y Selector de Sistema de Unidades -->
-    <div class="topbar-actions">
-      <div class="presets-group">
-        <span class="presets-title">Preajustes:</span>
-        <button type="button" class="preset-pill acme" (click)="applyPreset('sflame-acme')">s-Flame (ACME)</button>
-        <button type="button" class="preset-pill" (click)="applyPreset('saffire-vi')">Saffire VI</button>
-        <button type="button" class="preset-pill" (click)="applyPreset('bass-extinction')">BASS-II</button>
-        <button type="button" class="preset-pill" (click)="applyPreset('exploration-atm')">Exploración</button>
-        <button type="button" class="preset-pill alert" (click)="applyPreset('vacuum-quench')">Vacío (0 kPa)</button>
+    <div class="topbar-row-header">
+      <div class="topbar-heading">
+        <svg class="icon-svg heading-icon" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <h3 class="topbar-title">Consola IGNIS-μ (NASA PSI)</h3>
       </div>
 
       <!-- Toggle de Unidades SI vs Imperial NASA -->
       <button type="button" class="units-toggle-btn" (click)="toggleUnits()" title="Alternar unidades SI / NASA">
         <span>{{ ignisService.scenario().unitsSystem === 'si' ? 'SI (kPa · cm/s)' : 'NASA (psia · ft/min)' }}</span>
       </button>
+    </div>
+
+    <!-- Barra horizontal de Preajustes de Ensayo (Fila limpia e independiente) -->
+    <div class="presets-row">
+      <span class="presets-title">Preajustes:</span>
+      <div class="presets-scroll-strip">
+        <button type="button" class="preset-pill acme" (click)="applyPreset('sflame-acme')">s-Flame (ACME)</button>
+        <button type="button" class="preset-pill" (click)="applyPreset('saffire-vi')">Saffire VI</button>
+        <button type="button" class="preset-pill" (click)="applyPreset('bass-extinction')">BASS-II</button>
+        <button type="button" class="preset-pill" (click)="applyPreset('exploration-atm')">Exploración</button>
+        <button type="button" class="preset-pill alert" (click)="applyPreset('vacuum-quench')">Vacío (0 kPa)</button>
+      </div>
     </div>
   </div>
 

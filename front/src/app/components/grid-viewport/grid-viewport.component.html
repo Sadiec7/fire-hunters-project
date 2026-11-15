@@ -66,34 +66,35 @@
     <!-- Canvas WebGL 3D Real (Raymarching Volumétrico) -->
     <canvas #webglCanvas class="webgl-canvas"></canvas>
 
-    <!-- Indicador de Gravedad y Estado en Esquina Superior Izquierda -->
-    <div class="arena-badge-left">
-      <span class="pulse-dot" 
-            [class.alert]="ignisService.scenario().isVentingToSpace" 
-            [class.earth]="ignisService.scenario().gravityMode === 'earth-1g'"></span>
-      <span class="badge-text">
-        @if (ignisService.scenario().isVentingToSpace) {
-          Purga al Vacío Espacial (0 kPa · ΔP: -101.3 kPa · Extinción)
-        } @else if (ignisService.scenario().gravityMode === 'earth-1g') {
-          Gravedad Terrestre (1.0 g) · Penacho Boyante Convectivo (C-1998-485)
-        } @else if (ignisService.scenario().burnerGeometry === 'sflame-sphere') {
-          NASA s-Flame (ACME): Esfera Porosa (rs=6.35 mm) · Llama rf={{ ignisService.telemetry().flameRadiusMm }} mm ({{ ignisService.telemetry().gravityG }} g)
-        } @else {
-          NASA BASS/Saffire: Muestra Plana · Difusión laminar ({{ ignisService.telemetry().gravityG }} g)
-        }
-      </span>
+    <!-- Indicador de Gravedad y Rigor en Esquina Superior Izquierda (Compacto, Anti-Colisión) -->
+    <div class="arena-top-left-hud">
+      <div class="arena-badge-left">
+        <span class="pulse-dot" 
+              [class.alert]="ignisService.scenario().isVentingToSpace" 
+              [class.earth]="ignisService.scenario().gravityMode === 'earth-1g'"></span>
+        <span class="badge-text">
+          @if (ignisService.scenario().isVentingToSpace) {
+            Purga a Vacío (0 kPa)
+          } @else if (ignisService.scenario().gravityMode === 'earth-1g') {
+            1.0 g (Tierra Convectiva)
+          } @else if (ignisService.scenario().burnerGeometry === 'sflame-sphere') {
+            s-Flame (ACME) · rf={{ ignisService.telemetry().flameRadiusMm }}mm ({{ ignisService.telemetry().gravityG }}g)
+          } @else {
+            Muestra Sólida ({{ ignisService.telemetry().gravityG }}g)
+          }
+        </span>
+      </div>
+
+      <div class="arena-exploratory-badge" 
+           (click)="ignisService.openEvidencePassport({ id: 'PASSPORT-3D-FLAME', title: 'Modelo 3D Volumétrico Ilustrativo', epistemicTag: 'UNVERIFIED', transformation: 'Algoritmo de Raymarching en GLSL con balance reactivo Burke-Schumann', limitations: 'Visualización exploratoria para intuición física cualitativa; los valores empíricos normativos provienen de las series temporales de NASA PSI.' })"
+           title="Haz clic para ver el Pasaporte de Evidencia">
+        <span class="exploratory-dot"></span>
+        <span class="exploratory-text">MODELO ILUSTRATIVO ↗</span>
+      </div>
     </div>
 
-    <!-- Insignia Discreta de Rigor Científico (Exploratory Physical Visualization) -->
-    <div class="arena-exploratory-badge" 
-         (click)="ignisService.openEvidencePassport({ id: 'PASSPORT-3D-FLAME', title: 'Modelo 3D Volumétrico Ilustrativo', epistemicTag: 'UNVERIFIED', transformation: 'Algoritmo de Raymarching en GLSL con balance reactivo Burke-Schumann', limitations: 'Visualización exploratoria para intuición física cualitativa; los valores empíricos normativos provienen de las series temporales de NASA PSI.' })"
-         title="Haz clic para ver el Pasaporte de Evidencia">
-      <span class="exploratory-dot"></span>
-      <span class="exploratory-text">VISUALIZACIÓN FÍSICA EXPLORATORIA · MODELO ILUSTRATIVO</span>
-    </div>
-
-    <!-- Controles de Cámara Unificados en Esquina Superior Derecha -->
-    <div class="camera-floating-hud" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
+    <!-- Controles de Zoom en Esquina Superior Derecha (Solo Zoom, Ultra-Compacto) -->
+    <div class="camera-floating-zoom" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
       <div class="hud-pill">
         <button type="button" class="hud-icon-btn" (click)="zoomOut()" title="Alejar (-)">
           <svg class="icon-svg" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -104,25 +105,7 @@
         </button>
         <span class="hud-divider"></span>
         <button type="button" class="hud-action-btn" (click)="resetCamera()">
-          Restablecer
-        </button>
-      </div>
-
-      <div class="hud-presets">
-        <button type="button" class="preset-btn" (click)="setCameraView('isometric')" [class.active]="rotX() === 20 && rotY() === -20">
-          3D Órbita
-        </button>
-        <button type="button" class="preset-btn" (click)="setCameraView('top')" [class.active]="rotX() === 75">
-          Cenital (90°)
-        </button>
-        <button type="button" class="preset-btn" (click)="setCameraView('side')" [class.active]="rotX() === 6">
-          Perfil
-        </button>
-        <button type="button" class="preset-btn chart-toggle" (click)="toggleLiveChart()" [class.active]="showLiveChart()">
-          Osciloscopio
-        </button>
-        <button type="button" class="preset-btn sensors-toggle" (click)="toggleSensors()" [class.active]="showSensors()" title="Mostrar/ocultar sondas de telemetría 3D">
-          Sensores 3D
+          Reset
         </button>
       </div>
     </div>
@@ -172,7 +155,26 @@
       <svg class="icon-svg" viewBox="0 0 24 24">
         <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
       </svg>
-      <span>Arrastra para rotar 360° · Rueda para zoom</span>
+      <span>Arrastra 360° · Rueda zoom</span>
+    </div>
+
+    <!-- Presets de Cámara y Herramientas en Esquina Inferior Derecha (Separados del Top) -->
+    <div class="camera-presets-bottom" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
+      <button type="button" class="preset-btn" (click)="setCameraView('isometric')" [class.active]="rotX() === 20 && rotY() === -20">
+        3D Órbita
+      </button>
+      <button type="button" class="preset-btn" (click)="setCameraView('top')" [class.active]="rotX() === 75">
+        Cenital (90°)
+      </button>
+      <button type="button" class="preset-btn" (click)="setCameraView('side')" [class.active]="rotX() === 6">
+        Perfil
+      </button>
+      <button type="button" class="preset-btn chart-toggle" (click)="toggleLiveChart()" [class.active]="showLiveChart()">
+        Osciloscopio
+      </button>
+      <button type="button" class="preset-btn sensors-toggle" (click)="toggleSensors()" [class.active]="showSensors()" title="Mostrar/ocultar sondas de telemetría 3D">
+        Sensores
+      </button>
     </div>
 
     <!-- Sensores Flotantes Proyectados en Coordenadas de Pantalla (Modo Síntesis Óptica con Toggle Activo) -->
