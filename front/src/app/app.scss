@@ -129,3 +129,176 @@
     align-items: flex-start;
   }
 }
+
+/* ==========================================================================
+   BARRA FLOTANTE DE RECORRIDO GUIADO MISSION CONTROL (DEMO JURADO 90S)
+   ========================================================================== */
+.mission-tour-overlay {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  width: 90%;
+  max-width: 640px;
+  animation: tourSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .tour-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 149, 0, 0.45);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tour-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .tour-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .tour-pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-orange);
+        box-shadow: 0 0 8px var(--accent-orange);
+        animation: badge-pulse 1.5s infinite;
+      }
+
+      .tour-step-pill {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--accent-orange);
+      }
+
+      .tour-mode-tag {
+        font-size: 0.62rem;
+        color: var(--text-muted);
+        background: var(--bg-secondary);
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+    }
+
+    .tour-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 50%;
+      transition: all 0.15s ease;
+
+      .icon-svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      &:hover {
+        color: var(--text-primary);
+        background: var(--bg-secondary);
+      }
+    }
+  }
+
+  .tour-body {
+    .tour-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 4px 0;
+    }
+
+    .tour-desc {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.35;
+      margin: 0;
+    }
+  }
+
+  .tour-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+
+    .tour-dots {
+      display: flex;
+      gap: 6px;
+
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--border-subtle);
+        transition: all 0.2s ease;
+
+        &.active {
+          width: 18px;
+          border-radius: 3px;
+          background: var(--accent-orange);
+        }
+      }
+    }
+
+    .tour-btn {
+      border: none;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &.primary {
+        background: var(--accent-orange);
+        color: #fff;
+
+        &:hover {
+          filter: brightness(1.1);
+        }
+      }
+
+      &.secondary {
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-subtle);
+
+        &:hover:not(:disabled) {
+          color: var(--text-primary);
+        }
+
+        &:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+@keyframes tourSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

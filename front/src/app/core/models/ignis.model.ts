@@ -7,6 +7,118 @@ export type GravityMode = 'micro-quiescent' | 'micro-active' | 'micro-rcs' | 'ea
 export type PressureDisplayMode = 'absolute' | 'gauge';
 export type UnitsSystem = 'si' | 'imperial';
 
+// Modos de Realidad Científica (Scientific Reality Mode)
+export type ScientificRealityMode = 'simulation' | 'evidence' | 'inference';
+
+// Modelos y Estados para Live Bayesian Inference
+export type BayesianNetworkModel = 'BN-01' | 'BN-02' | 'BN-03';
+export type MfcPatternState = 'solo-mfc3' | 'mfc2-mfc3-coupled' | 'preflow-low' | 'ramp-high' | 'unsupported';
+
+export interface BayesianInferenceResult {
+  variableName: string;
+  stateName: string;
+  modelId: BayesianNetworkModel;
+  modelDescription: string;
+  probPmt3High: number | null;
+  probRadiometerHigh: number | null;
+  probIgnition: number | null;
+  isSupported: boolean;
+  unsupportedReason?: string;
+  provenance: string;
+  inferenceType: string;
+  cptNodesSample: { condition: string; pPmt3: number; pRad: number }[];
+}
+
+// Factual vs. Counterfactual Explorer
+export type CounterfactualMode = 'observed' | 'hypothetical' | 'compare';
+export type ScmModelVariant = 'M1' | 'M2' | 'M3';
+
+export interface SensorChannelReading {
+  channelId: string;
+  name: string;
+  unit: string;
+  observedValue: number;
+  hypotheticalValue: number;
+  delta: number;
+  deltaPct: number;
+  calibrationVerified: boolean;
+}
+
+export interface CounterfactualComparisonData {
+  expId: string;
+  scmModel: ScmModelVariant;
+  scmModelName: string;
+  interventionDesc: string;
+  mfc2Multiplier: number;
+  mfc3Multiplier: number;
+  channels: SensorChannelReading[];
+  couplingLowerPct: number;
+  couplingUpperPct: number;
+  couplingEquationLatex: string;
+  causalEffectIdentified: boolean;
+  disclaimer: string;
+}
+
+// NASA Evidence Passport
+export interface EvidencePassportData {
+  id: string;
+  title: string;
+  investigation: string;
+  experimentId: string;
+  observedVar: string;
+  sourceFile: string;
+  sha256: string;
+  transformation: string;
+  modelUsed: string;
+  limitations: string;
+  psiUrl: string;
+  epistemicTag: 'OBSERVED' | 'INFERRED' | 'UNVERIFIED';
+}
+
+// Clasificación de Jornadas (What NASA Should Test Next / LOJO)
+export interface JornadaRankingItem {
+  jornadaId: number;
+  name: string;
+  isMostInfluential: boolean;
+  trialsCount: number;
+  baselineRmse: number;
+  withoutJornadaRmse: number;
+  deltaRmseLojo: number;
+  ateShiftPct: number;
+  rationale: string;
+  suggestedConditions: string;
+}
+
+// Ficha de Propuesta de Investigación (Generated Experiment Brief)
+export interface ExperimentBrief {
+  briefId: string;
+  title: string;
+  targetJornada: number;
+  scientificHypothesis: string;
+  proposedConditions: {
+    flowVelocity: string;
+    oxygenFraction: string;
+    pressure: string;
+    burnerGeometry: string;
+    fuel: string;
+  };
+  targetSensors: string[];
+  existingEvidencePsi: string;
+  epistemicLimitations: string;
+  systemDisclaimer: string;
+  generatedDate: string;
+}
+
+// Mission Control 90s Guided Demo Step
+export interface MissionControlStep {
+  stepIndex: number;
+  timeRange: string;
+  title: string;
+  instruction: string;
+  mode: ScientificRealityMode;
+  featureKey: string;
+}
+
 export interface PhysicalScenario {
   material: MaterialType;
   burnerGeometry: BurnerGeometryType; // Quemador esférico poroso (s-Flame ACME) vs muestra plana
@@ -101,7 +213,7 @@ export interface SensorTelemetry {
   partialPressureO2Psia: number;  // P_O2 en psia
   reynoldsNumber: number;         // Re = u * L / nu (transporte laminar en microgravedad)
   damkohlerNumber: number;        // Da = tau_flow / tau_chem (régimen de combustión vs apagado)
-  nasaStd6001Status: 'PASSED' | 'MARGINAL' | 'FAILED'; // Criterio de inflamabilidad NASA-STD-6001 Test 1
+  nasaStd6001Status: 'COMPLIANCE NOT ASSESSED' | 'PASSED' | 'MARGINAL' | 'FAILED'; // Estado formal NASA-STD-6001 Test 1 (requiere cámara vertical de vuelo)
   gravityG: number;               // Nivel de gravedad efectivo en g (1e-6 a 1.0)
   // Variables Físicas de s-Flame (NASA ACME)
   flameRadiusMm: number;          // Radio de llama esférica r_f (mm) según difusión-convección

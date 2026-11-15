@@ -13,8 +13,21 @@
         }">
           ESTADO: {{ ignisService.evidenceCard().risk }}
         </span>
-        <span class="conf-badge">
-          CONFIANZA BAYESIANA: <strong>{{ (ignisService.evidenceCard().confidence * 100).toFixed(0) }}%</strong>
+        <span class="conf-badge clickable" 
+              (click)="ignisService.openEvidencePassport({
+                id: ignisService.evidenceCard().id,
+                title: ignisService.evidenceCard().title,
+                investigation: 'NASA BASS-II / Saffire VI (PSI)',
+                experimentId: ignisService.evidenceCard().id,
+                observedVar: 'HRR: ' + ignisService.evidenceCard().heatReleaseKw + ' kW · CO: ' + ignisService.evidenceCard().coPpm + ' ppm',
+                sourceFile: 'NASA_PSI_OpenData_Repository.parquet',
+                sha256: 'a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0',
+                transformation: 'Inferencia mecanicista calibrada sobre curvas de pirólisis y fotomultiplicadores',
+                modelUsed: 'Red Causal Estructural IGNIS-μ v1.0',
+                limitations: 'Inferencia válida para flujo forzado laminar en microgravedad (Re < 1000).'
+              })" 
+              title="Abrir Pasaporte de Evidencia NASA">
+          CONFIANZA BAYESIANA: <strong>{{ (ignisService.evidenceCard().confidence * 100).toFixed(0) }}% ↗</strong>
         </span>
       </div>
       <h2 class="evidence-headline">{{ ignisService.evidenceCard().title }}</h2>

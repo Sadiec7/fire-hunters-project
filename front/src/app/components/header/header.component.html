@@ -20,16 +20,55 @@
 
       <div class="brand-text">
         <div class="title-row">
-          <span class="product-name">IGNIS-Ω</span>
+          <span class="product-name">IGNIS-μ</span>
           <span class="ios-badge blue">NASA Space Apps</span>
           <span class="ios-badge">Flame in Freefall</span>
         </div>
-        <p class="product-caption">Causal Fire Intelligence for Spacecraft · Microgravity Combustion</p>
+        <p class="product-caption">Probabilistic & Causal Intelligence for Microgravity Combustion · NASA PSI</p>
       </div>
     </div>
   </div>
 
+  <div class="header-center">
+    <!-- Selector de Realidad Científica (Scientific Reality Mode: P1) -->
+    <div class="reality-mode-segmented">
+      <button 
+        type="button" 
+        class="reality-btn" 
+        [class.active]="ignisService.scientificMode() === 'simulation'"
+        (click)="ignisService.setScientificMode('simulation')"
+        title="Simulación 3D y exploración física ilustrativa">
+        SIMULATION
+      </button>
+      <button 
+        type="button" 
+        class="reality-btn" 
+        [class.active]="ignisService.scientificMode() === 'evidence'"
+        (click)="ignisService.setScientificMode('evidence')"
+        title="Condiciones y mediciones empíricas documentadas en NASA PSI">
+        NASA EVIDENCE
+      </button>
+      <button 
+        type="button" 
+        class="reality-btn" 
+        [class.active]="ignisService.scientificMode() === 'inference'"
+        (click)="ignisService.setScientificMode('inference')"
+        title="Modelos bayesianos (BN-01/02/03) y comparador contrafactual SCM">
+        INFERENCE
+      </button>
+    </div>
+  </div>
+
   <div class="header-right">
+    <!-- Lanzador de Demo de Control de Misión en 90s (P2) -->
+    <button 
+      type="button" 
+      class="mission-demo-btn" 
+      (click)="ignisService.startMissionControlTour()"
+      title="Recorrido guiado de 90 segundos para el jurado">
+      <span class="pulse-play">▶</span>
+      <span>Demo Jurado (90s)</span>
+    </button>
     <!-- Telemetría discreta -->
     <div class="status-pill">
       <span class="live-dot"></span>

@@ -84,6 +84,14 @@
       </span>
     </div>
 
+    <!-- Insignia Discreta de Rigor Científico (Exploratory Physical Visualization) -->
+    <div class="arena-exploratory-badge" 
+         (click)="ignisService.openEvidencePassport({ id: 'PASSPORT-3D-FLAME', title: 'Modelo 3D Volumétrico Ilustrativo', epistemicTag: 'UNVERIFIED', transformation: 'Algoritmo de Raymarching en GLSL con balance reactivo Burke-Schumann', limitations: 'Visualización exploratoria para intuición física cualitativa; los valores empíricos normativos provienen de las series temporales de NASA PSI.' })"
+         title="Haz clic para ver el Pasaporte de Evidencia">
+      <span class="exploratory-dot"></span>
+      <span class="exploratory-text">VISUALIZACIÓN FÍSICA EXPLORATORIA · MODELO ILUSTRATIVO</span>
+    </div>
+
     <!-- Controles de Cámara Unificados en Esquina Superior Derecha -->
     <div class="camera-floating-hud" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
       <div class="hud-pill">
