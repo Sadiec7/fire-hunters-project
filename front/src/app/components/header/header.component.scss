@@ -23,14 +23,15 @@
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 0 12px rgba(255, 149, 0, 0.25);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
+  transition: all 0.25s ease;
 
   .brand-logo {
     width: 100%;
@@ -38,6 +39,29 @@
     object-fit: cover;
     display: block;
     border-radius: 9px;
+    transition: filter 0.25s ease;
+    // En modo claro: invierte el fondo carbón oscuro [26, 26, 28] a blanco puro, y hue-rotate 180deg mantiene los colores azul y naranja de la llama
+    filter: invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.15);
+  }
+
+  &.dark {
+    background: #121214;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 0 12px rgba(255, 149, 0, 0.25);
+
+    .brand-logo {
+      filter: none;
+    }
+  }
+}
+
+:host-context(.dark-theme) .brand-symbol {
+  background: #121214;
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 0 12px rgba(255, 149, 0, 0.25);
+
+  .brand-logo {
+    filter: none;
   }
 }
 
