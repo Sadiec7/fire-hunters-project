@@ -7,8 +7,8 @@
         <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
         <path d="M2 12h20"></path>
       </svg>
-      <span class="header-title">Cámara de Combustión en Microgravedad</span>
-      <span class="ios-badge">{{ ignisService.scenario().material }} · {{ ignisService.scenario().pressureKpa }} kPa</span>
+      <span class="header-title">{{ ignisService.t().chamberTitle }}</span>
+      <span class="ios-badge">{{ ignisService.getTranslatedMaterial() }} · {{ ignisService.scenario().pressureKpa }} kPa</span>
     </div>
 
     <!-- Segmented Control de Capas Físicas (s-Flame ACME Sección 9) -->
@@ -43,7 +43,7 @@
         [class.active]="ignisService.activeLayer() === 'radiation'"
         (click)="setLayer('radiation')"
         title="Divergencia del flujo radiativo q_rad de CO2/H2O (Sección 5, 9.4)">
-        Pérdida q̇_rad
+        {{ ignisService.t().layerRad }}
       </button>
       <button 
         type="button"
@@ -203,12 +203,12 @@
   <div class="viewport-footer-metrics">
     <div class="metrics-cluster">
       <div class="metric-block" title="Radio estequiométrico de llama esférica s-Flame (Sección 9.1)">
-        <span class="metric-label">Radio Llama r_f:</span>
+        <span class="metric-label">{{ ignisService.t().flameRadiusLabel }}:</span>
         <span class="metric-val">{{ ignisService.telemetry().flameRadiusMm }} mm</span>
       </div>
       <div class="cluster-divider"></div>
       <div class="metric-block" title="Temperatura pico del frente de llama en Kelvin (Sección 9.2)">
-        <span class="metric-label">T_max:</span>
+        <span class="metric-label">{{ ignisService.t().peakTempLabel }}:</span>
         <span class="metric-val">{{ ignisService.telemetry().maxFlameTempK }} K <small class="metric-sub-val">({{ ignisService.telemetry().thermocoupleTempC }} °C)</small></span>
       </div>
       <div class="cluster-divider"></div>
@@ -223,14 +223,14 @@
       </div>
       <div class="cluster-divider"></div>
       <div class="metric-block" title="Balance térmico neto q_net = q_chem - q_rad (Criterio de extinción 9.5)">
-        <span class="metric-label">Balance Neto:</span>
+        <span class="metric-label">{{ ignisService.t().netThermalBalanceLabel }}:</span>
         <span class="metric-val" [class.danger]="ignisService.telemetry().netThermalBalanceKw <= 0">
           {{ ignisService.telemetry().netThermalBalanceKw > 0 ? '+' : '' }}{{ ignisService.telemetry().netThermalBalanceKw }} kW
         </span>
       </div>
       <div class="cluster-divider"></div>
       <div class="metric-block" title="Probabilidad física de extinción radiativa o convectiva">
-        <span class="metric-label">Extinción:</span>
+        <span class="metric-label">{{ ignisService.t().extinctionLabel }}:</span>
         <span class="metric-val" [class.danger]="ignisService.telemetry().flameExtinctionProb > 0.5">
           {{ (ignisService.telemetry().flameExtinctionProb * 100).toFixed(0) }}%
         </span>
@@ -238,7 +238,7 @@
     </div>
 
     <div class="footer-caption">
-      <span>Gemelo Digital s-Flame (ACME NASA) · Navier-Stokes bajo Mach, Arrhenius y Transferencia Radiativa RTE</span>
+      <span>{{ ignisService.currentLang() === 'en' ? 's-Flame Digital Twin (NASA ACME) · Low-Mach Navier-Stokes, Arrhenius & Radiative Transfer RTE' : 'Gemelo Digital s-Flame (ACME NASA) · Navier-Stokes bajo Mach, Arrhenius y Transferencia Radiativa RTE' }}</span>
     </div>
   </div>
 </div>

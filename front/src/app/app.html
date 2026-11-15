@@ -40,10 +40,10 @@
         <span>Space Apps Challenge 2026 · <em>Flame in Freefall</em></span>
       </div>
       <div class="footer-block center-block">
-        <span>Datos empíricos: Physical Sciences Informatics (PSI-69, PSI-25, PSI-98, Saffire VI)</span>
+        <span>{{ ignisService.currentLang() === 'en' ? 'Empirical data: Physical Sciences Informatics (PSI-69, PSI-25, PSI-98, Saffire VI)' : 'Datos empíricos: Physical Sciences Informatics (PSI-69, PSI-25, PSI-98, Saffire VI)' }}</span>
       </div>
       <div class="footer-block">
-        <span>Licencia Abierta CC0-1.0 · Causal Engine v1.0</span>
+        <span>{{ ignisService.currentLang() === 'en' ? 'Open License CC0-1.0 · Causal Engine v1.0' : 'Licencia Abierta CC0-1.0 · Causal Engine v1.0' }}</span>
       </div>
     </footer>
   </div>
@@ -108,7 +108,7 @@
         </div>
         <div class="mini-actions">
           <button type="button" class="mini-btn-next" (click)="$event.stopPropagation(); ignisService.nextTourStep()">
-            {{ step === 5 ? 'Fin' : 'Siguiente ▶' }}
+            {{ step === 5 ? ignisService.t().tourEnd : (ignisService.currentLang() === 'en' ? 'Next ▶' : 'Siguiente ▶') }}
           </button>
           <button type="button" class="mini-btn-icon" (click)="$event.stopPropagation(); ignisService.toggleTourMinimize()" title="Expandir">
             <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>

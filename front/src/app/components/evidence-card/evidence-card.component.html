@@ -11,7 +11,7 @@
           'success': ignisService.evidenceCard().risk === 'LOW',
           'blue': ignisService.evidenceCard().risk === 'EXTINCT'
         }">
-          ESTADO: {{ ignisService.evidenceCard().risk }}
+          {{ ignisService.t().evidenceCardStatus }} {{ ignisService.evidenceCard().risk }}
         </span>
         <span class="conf-badge clickable" 
               (click)="ignisService.openEvidencePassport({
@@ -27,7 +27,7 @@
                 limitations: 'Inferencia válida para flujo forzado laminar en microgravedad (Re < 1000).'
               })" 
               title="Abrir Pasaporte de Evidencia NASA">
-          CONFIANZA BAYESIANA: <strong>{{ (ignisService.evidenceCard().confidence * 100).toFixed(0) }}% ↗</strong>
+          {{ ignisService.t().evidenceCardConfidence }} <strong>{{ (ignisService.evidenceCard().confidence * 100).toFixed(0) }}% ↗</strong>
         </span>
       </div>
       <h2 class="evidence-headline">{{ ignisService.evidenceCard().title }}</h2>
@@ -36,19 +36,19 @@
     <!-- Telemetría cuantitativa tabular de consola de misión -->
     <div class="aero-stats-table">
       <div class="stat-cell">
-        <span class="cell-label">CALOR LIBERADO (HRR)</span>
+        <span class="cell-label">{{ ignisService.t().evidenceCardHeatRelease }}</span>
         <span class="cell-val">{{ ignisService.evidenceCard().heatReleaseKw }} kW</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-cell">
-        <span class="cell-label">MONÓXIDO (CO)</span>
+        <span class="cell-label">{{ ignisService.t().evidenceCardCO }}</span>
         <span class="cell-val" [class.alert]="ignisService.evidenceCard().coPpm > 40">
           {{ ignisService.evidenceCard().coPpm }} ppm
         </span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-cell">
-        <span class="cell-label">DIÓXIDO (CO₂)</span>
+        <span class="cell-label">{{ ignisService.t().evidenceCardCO2 }}</span>
         <span class="cell-val">{{ ignisService.telemetry().co2Percent }}%</span>
       </div>
     </div>
@@ -57,15 +57,15 @@
   <!-- PIPELINE CAUSAL DE INGENIERÍA (DAG DE TELEMETRÍA) -->
   <div class="causal-pipeline-container">
     <div class="pipeline-header">
-      <span class="pipeline-title">PIPELINE DE INFERENCIA MECANICISTA (INTERACTIVO)</span>
-      <span class="pipeline-sub">Haz clic en una etapa para desplegar ecuaciones de balance térmico</span>
+      <span class="pipeline-title">{{ ignisService.t().pipelineTitle }}</span>
+      <span class="pipeline-sub">{{ ignisService.t().pipelineSub }}</span>
     </div>
 
     <div class="pipeline-bus">
       <div class="bus-node" [class.selected]="activeCausalStep() === 1" (click)="selectCausalStep(1)">
         <div class="node-header">
           <span class="node-idx">[01/COND]</span>
-          <span class="node-tag">ENTRADA</span>
+          <span class="node-tag">{{ ignisService.t().step01Input }}</span>
         </div>
         <p class="node-text">{{ ignisService.evidenceCard().causalChain.conditions }}</p>
       </div>
@@ -73,7 +73,7 @@
       <div class="bus-node" [class.selected]="activeCausalStep() === 2" (click)="selectCausalStep(2)">
         <div class="node-header">
           <span class="node-idx">[02/PHYS]</span>
-          <span class="node-tag">MECANISMO</span>
+          <span class="node-tag">{{ ignisService.t().step02Mech }}</span>
         </div>
         <p class="node-text">{{ ignisService.evidenceCard().causalChain.physicalMechanism }}</p>
       </div>
@@ -81,7 +81,7 @@
       <div class="bus-node" [class.selected]="activeCausalStep() === 3" (click)="selectCausalStep(3)">
         <div class="node-header">
           <span class="node-idx">[03/DATA]</span>
-          <span class="node-tag">OBSERVACIÓN</span>
+          <span class="node-tag">{{ ignisService.t().step03Obs }}</span>
         </div>
         <p class="node-text">{{ ignisService.evidenceCard().causalChain.observations }}</p>
       </div>
@@ -89,7 +89,7 @@
       <div class="bus-node outcome-node" [class.selected]="activeCausalStep() === 4" (click)="selectCausalStep(4)">
         <div class="node-header">
           <span class="node-idx">[04/EVAL]</span>
-          <span class="node-tag">RESULTADO</span>
+          <span class="node-tag">{{ ignisService.t().step04Outcome }}</span>
         </div>
         <p class="node-text">{{ ignisService.evidenceCard().causalChain.outcome }}</p>
       </div>
@@ -139,7 +139,7 @@
         <p class="ground-body">{{ ignisService.evidenceCard().counterfactual }}</p>
         <button type="button" class="counterfactual-trigger-btn" (click)="applyCounterfactual()">
           <span class="btn-dot"></span>
-          <span>EJECUTAR CONTRAFACTUAL EN LA SIMULACIÓN</span>
+          <span>{{ ignisService.t().runCounterfactualBtn }}</span>
         </button>
       </div>
     </div>
@@ -152,7 +152,7 @@
         <p class="extrap-text">{{ ignisService.evidenceCard().warning }}</p>
         <div class="tags-cluster">
           @for (tag of ignisService.evidenceCard().extrapolatedVars; track tag) {
-            <span class="tag-pill">NO_ENSAYADO: {{ tag }}</span>
+            <span class="tag-pill">{{ ignisService.t().untestedLabel }}: {{ tag }}</span>
           }
         </div>
       </div>
