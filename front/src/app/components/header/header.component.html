@@ -21,10 +21,10 @@
       <div class="brand-text">
         <div class="title-row">
           <span class="product-name">IGNIS-μ</span>
-          <span class="ios-badge blue">NASA Space Apps</span>
-          <span class="ios-badge">Flame in Freefall</span>
+          <span class="ios-badge blue">{{ ignisService.t().appsBadge }}</span>
+          <span class="ios-badge">{{ ignisService.t().freefallBadge }}</span>
         </div>
-        <p class="product-caption">Probabilistic & Causal Intelligence for Microgravity Combustion · NASA PSI</p>
+        <p class="product-caption">{{ ignisService.t().brandCaption }}</p>
       </div>
     </div>
   </div>
@@ -37,24 +37,24 @@
         class="reality-btn" 
         [class.active]="ignisService.scientificMode() === 'simulation'"
         (click)="ignisService.setScientificMode('simulation')"
-        title="Simulación 3D y exploración física ilustrativa">
-        SIMULATION
+        [title]="ignisService.t().simModeTitle">
+        {{ ignisService.t().simMode }}
       </button>
       <button 
         type="button" 
         class="reality-btn" 
         [class.active]="ignisService.scientificMode() === 'evidence'"
         (click)="ignisService.setScientificMode('evidence')"
-        title="Condiciones y mediciones empíricas documentadas en NASA PSI">
-        NASA EVIDENCE
+        [title]="ignisService.t().evidenceModeTitle">
+        {{ ignisService.t().evidenceMode }}
       </button>
       <button 
         type="button" 
         class="reality-btn" 
         [class.active]="ignisService.scientificMode() === 'inference'"
         (click)="ignisService.setScientificMode('inference')"
-        title="Modelos bayesianos (BN-01/02/03) y comparador contrafactual SCM">
-        INFERENCE
+        [title]="ignisService.t().inferenceModeTitle">
+        {{ ignisService.t().inferenceMode }}
       </button>
     </div>
   </div>
@@ -65,19 +65,38 @@
       type="button" 
       class="mission-demo-btn" 
       (click)="ignisService.startMissionControlTour()"
-      title="Recorrido guiado de 90 segundos para el jurado">
+      [title]="ignisService.t().demoBtnTitle">
       <span class="pulse-play">▶</span>
-      <span>Demo Jurado (90s)</span>
+      <span>{{ ignisService.t().demoBtn }}</span>
     </button>
+
     <!-- Telemetría discreta -->
     <div class="status-pill">
       <span class="live-dot"></span>
-      <span class="status-label">{{ ignisService.scenario().gravityMode === 'earth-1g' ? '1.0 g (Tierra)' : 'µg (' + ignisService.telemetry().gravityG + ' g)' }}</span>
+      <span class="status-label">{{ ignisService.scenario().gravityMode === 'earth-1g' ? '1.0 g (1g)' : 'µg (' + ignisService.telemetry().gravityG + ' g)' }}</span>
     </div>
 
     <div class="dataset-pill">
-      <span>Datasets:</span>
+      <span>{{ ignisService.t().datasetsLabel }}</span>
       <strong>PSI-69 / PSI-25 / PSI-98</strong>
+    </div>
+
+    <!-- Selector Bilingüe EN / ES (Inglés por Defecto) -->
+    <div class="lang-segmented" [title]="ignisService.t().langBtnTitle">
+      <button 
+        type="button" 
+        class="lang-btn" 
+        [class.active]="ignisService.currentLang() === 'en'"
+        (click)="ignisService.setLanguage('en')">
+        EN
+      </button>
+      <button 
+        type="button" 
+        class="lang-btn" 
+        [class.active]="ignisService.currentLang() === 'es'"
+        (click)="ignisService.setLanguage('es')">
+        ES
+      </button>
     </div>
 
     <!-- Toggle Modo Oscuro / Claro estilo iOS -->
@@ -85,8 +104,8 @@
       type="button" 
       class="theme-toggle-btn" 
       (click)="ignisService.toggleTheme()"
-      [attr.aria-label]="ignisService.isDarkMode() ? 'Activar modo claro' : 'Activar modo oscuro'"
-      title="Cambiar tema">
+      [attr.aria-label]="ignisService.isDarkMode() ? ignisService.t().themeLightAria : ignisService.t().themeDarkAria"
+      [title]="ignisService.t().themeToggleTitle">
       @if (ignisService.isDarkMode()) {
         <!-- Icono Sol (vectorial) -->
         <svg class="icon-svg" viewBox="0 0 24 24">

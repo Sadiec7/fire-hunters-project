@@ -7,7 +7,7 @@
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
-        <h3 class="topbar-title">Consola IGNIS-μ (NASA PSI)</h3>
+        <h3 class="topbar-title">{{ ignisService.t().consoleTitle }}</h3>
       </div>
 
       <!-- Toggle de Unidades SI vs Imperial NASA -->
@@ -18,13 +18,13 @@
 
     <!-- Barra horizontal de Preajustes de Ensayo (Fila limpia e independiente) -->
     <div class="presets-row">
-      <span class="presets-title">Preajustes:</span>
+      <span class="presets-title">{{ ignisService.t().presetsTitle }}</span>
       <div class="presets-scroll-strip">
-        <button type="button" class="preset-pill acme" (click)="applyPreset('sflame-acme')">s-Flame (ACME)</button>
-        <button type="button" class="preset-pill" (click)="applyPreset('saffire-vi')">Saffire VI</button>
-        <button type="button" class="preset-pill" (click)="applyPreset('bass-extinction')">BASS-II</button>
-        <button type="button" class="preset-pill" (click)="applyPreset('exploration-atm')">Exploración</button>
-        <button type="button" class="preset-pill alert" (click)="applyPreset('vacuum-quench')">Vacío (0 kPa)</button>
+        <button type="button" class="preset-pill acme" (click)="applyPreset('sflame-acme')">{{ ignisService.t().presetSFlame }}</button>
+        <button type="button" class="preset-pill" (click)="applyPreset('saffire-vi')">{{ ignisService.t().presetSaffire }}</button>
+        <button type="button" class="preset-pill" (click)="applyPreset('bass-extinction')">{{ ignisService.t().presetBass }}</button>
+        <button type="button" class="preset-pill" (click)="applyPreset('exploration-atm')">{{ ignisService.t().presetExploration }}</button>
+        <button type="button" class="preset-pill alert" (click)="applyPreset('vacuum-quench')">{{ ignisService.t().presetVacuum }}</button>
       </div>
     </div>
   </div>
@@ -36,21 +36,21 @@
       class="mode-switch-btn" 
       [class.active]="ignisService.scientificMode() === 'simulation'"
       (click)="setScientificMode('simulation')">
-      <span>1. SIMULACIÓN FÍSICA</span>
+      <span>1. {{ ignisService.t().simMode }}</span>
     </button>
     <button 
       type="button" 
       class="mode-switch-btn highlight" 
       [class.active]="ignisService.scientificMode() === 'inference'"
       (click)="setScientificMode('inference')">
-      <span>2. LIVE BAYESIAN & SCM</span>
+      <span>2. {{ ignisService.t().inferenceMode }} & SCM</span>
     </button>
     <button 
       type="button" 
       class="mode-switch-btn" 
       [class.active]="ignisService.scientificMode() === 'evidence'"
       (click)="setScientificMode('evidence')">
-      <span>3. EVIDENCIA NASA PSI</span>
+      <span>3. {{ ignisService.t().evidenceMode }}</span>
     </button>
   </div>
 
@@ -86,7 +86,7 @@
             <!-- 1. ENTORNO GRAVITATORIO: g-Jitter de la ISS vs 1-g Terrestre -->
             <div class="form-row">
               <div class="label-box">
-                <label class="field-label">Entorno gravitatorio (g-Jitter / Convección)</label>
+                <label class="field-label">{{ ignisService.t().gravityLabel }}</label>
                 <span class="field-val-badge">
                   {{ ignisService.scenario().gravityMode === 'earth-1g' ? '1.0 g (Tierra)' : ignisService.telemetry().gravityG + ' g' }}
                 </span>
@@ -137,7 +137,7 @@
             <!-- 2. GEOMETRÍA DEL QUEMADOR: s-Flame Poroso vs Muestra Sólida -->
             <div class="form-row">
               <div class="label-box">
-                <label class="field-label">Aparato experimental (NASA ACME / Saffire)</label>
+                <label class="field-label">{{ ignisService.t().burnerLabel }}</label>
                 <span class="field-val-badge">
                   {{ ignisService.scenario().burnerGeometry === 'sflame-sphere' ? 'Esfera Porosa (s-Flame)' : 'Muestra Sólida' }}
                 </span>
@@ -163,7 +163,7 @@
             <!-- 3. VELOCIDAD DE VENTILACIÓN FORZADA -->
             <div class="form-row">
               <div class="label-box">
-                <label class="field-label">Velocidad de ventilación forzada</label>
+                <label class="field-label">{{ ignisService.t().flowVelocityLabel }}</label>
                 <div class="metrics-dual">
                   <span class="field-metric">
                     {{ ignisService.scenario().unitsSystem === 'si' ? ignisService.scenario().flowVelocity + ' cm/s' : (ignisService.scenario().flowVelocity * 1.97).toFixed(0) + ' ft/min' }}
@@ -193,7 +193,7 @@
             <!-- 4. DIRECCIÓN DE FLUJO -->
             <div class="form-row">
               <div class="label-box">
-                <label class="field-label">Dirección del flujo de oxidante</label>
+                <label class="field-label">{{ ignisService.t().flowDirectionLabel }}</label>
               </div>
               <div class="ios-segmented full-width">
                 <button 
@@ -246,7 +246,7 @@
             <div class="form-row">
               <div class="label-box">
                 <div class="title-with-badge">
-                  <label class="field-label">Concentración de O₂ (Molar)</label>
+                  <label class="field-label">{{ ignisService.t().o2Label }}</label>
                   <span class="nasa-status-chip compliance-unassessed" 
                         (click)="openEvidencePassport({ id: 'PASSPORT-STD-6001', title: 'NASA-STD-6001 Test 1 · Evaluación de Inflamabilidad', epistemicTag: 'UNVERIFIED', limitations: 'La conformidad con NASA-STD-6001 no puede determinarse automáticamente por simulación; requiere cámara de ensayo estandarizada en tierra.' })"
                         title="Haz clic para ver el Pasaporte de Evidencia">
@@ -286,7 +286,7 @@
             <div class="form-row">
               <div class="label-box">
                 <div class="title-with-badge">
-                  <label class="field-label">Presión de cámara / cabina</label>
+                  <label class="field-label">{{ ignisService.t().chamberPressureLabel }}</label>
                   <button type="button" class="mode-text-toggle" (click)="togglePressureMode()">
                     {{ ignisService.scenario().pressureMode === 'absolute' ? 'Ver Manométrica (ΔP)' : 'Ver Absoluta' }}
                   </button>
@@ -328,7 +328,7 @@
                 <div class="emergency-action-row">
                   <button type="button" class="aero-emergency-btn vent" (click)="triggerVacuumVenting()">
                     <span class="btn-tag">[EMERGENCY VACUUM-VENT]</span>
-                    <span class="btn-title">Purga al Vacío Espacial (0.0 kPa · ΔP: -101.3 kPa · Extinción)</span>
+                    <span class="btn-title">{{ ignisService.t().emergencyVentBtn }}</span>
                   </button>
                 </div>
               } @else {
@@ -340,7 +340,7 @@
                   <p>Válvula exterior abierta. Presión = 0 kPa. Llama extinguida instantáneamente por descompresión explosiva.</p>
                   <button type="button" class="aero-emergency-btn restore" (click)="restoreCabinAtmosphere()">
                     <span class="btn-tag">[REPRESS]</span>
-                    <span class="btn-title">Restablecer Presurización de Cabina (55 kPa)</span>
+                    <span class="btn-title">{{ ignisService.t().repressBtn }}</span>
                   </button>
                 </div>
               }
@@ -359,13 +359,13 @@
             <div class="operations-toolbar">
               <div class="suppression-group">
                 <span class="ops-title">Inyección de Supresores:</span>
-                <button type="button" class="tool-btn" (click)="injectSuppressant('N2')">Inyectar N₂</button>
-                <button type="button" class="tool-btn" (click)="injectSuppressant('CO2')">Inyectar CO₂</button>
+                <button type="button" class="tool-btn" (click)="injectSuppressant('N2')">{{ ignisService.t().injectN2 }}</button>
+                <button type="button" class="tool-btn" (click)="injectSuppressant('CO2')">{{ ignisService.t().injectCO2 }}</button>
               </div>
 
               <button type="button" class="export-data-btn" (click)="exportTelemetry()">
                 <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                <span>Exportar (JSON)</span>
+                <span>{{ ignisService.t().exportJson }}</span>
               </button>
             </div>
           </div>
@@ -376,21 +376,28 @@
   <!-- VISTA B: LIVE BAYESIAN INFERENCE & SCM COUNTERFACTUAL (P0) -->
   @else if (ignisService.scientificMode() === 'inference') {
     <div class="inference-flow">
-      <!-- Sub-navegación aeroespacial para alternar entre Red Bayesiana y Causalidad SCM -->
+      <!-- Sub-navegación aeroespacial para alternar entre Red Bayesiana, Causalidad SCM y Gemelo Digital -->
       <div class="inference-subnav">
         <button 
           type="button" 
           class="subnav-btn" 
           [class.active]="ignisService.inferenceSubMode() === 'bayesian'"
           (click)="setInferenceSubMode('bayesian')">
-          <span class="subnav-num">2.1</span> Red Bayesiana (BN-01/02/03)
+          <span class="subnav-num">2.1</span> {{ ignisService.t().bayesianSubtab }}
         </button>
         <button 
           type="button" 
           class="subnav-btn" 
           [class.active]="ignisService.inferenceSubMode() === 'counterfactual'"
           (click)="setInferenceSubMode('counterfactual')">
-          <span class="subnav-num">2.2</span> Causalidad SCM (Factual vs. Contrafactual)
+          <span class="subnav-num">2.2</span> {{ ignisService.t().scmSubtab }}
+        </button>
+        <button 
+          type="button" 
+          class="subnav-btn highlight" 
+          [class.active]="ignisService.inferenceSubMode() === 'digital-twin'"
+          (click)="setInferenceSubMode('digital-twin')">
+          <span class="subnav-num">2.3</span> {{ ignisService.t().digitalTwinSubtab }}
         </button>
       </div>
 
@@ -579,7 +586,7 @@
       }
 
       <!-- 2. FACTUAL VS. COUNTERFACTUAL EXPLORER (P0) -->
-      @else {
+      @else if (ignisService.inferenceSubMode() === 'counterfactual') {
         <div class="counterfactual-card ios-card">
         <div class="cf-header">
           <div class="cf-title-box">

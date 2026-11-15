@@ -7,16 +7,19 @@ import {
   Counterexample,
   CounterfactualComparisonData,
   CounterfactualMode,
+  DigitalTwinSensor,
   EvidenceCard,
   EvidencePassportData,
   ExperimentBrief,
   GravityMode,
   JornadaRankingItem,
   KnowledgeTriadItem,
+  MfcDiscreteEvent,
   MfcPatternState,
   MissionControlStep,
   PhysicalScenario,
   PressureDisplayMode,
+  RayClusterStatus,
   ScientificRealityMode,
   ScmModelVariant,
   SensorChannelReading,
@@ -25,11 +28,195 @@ import {
   UnitsSystem,
   VisualLayerType,
 } from '../models/ignis.model';
+import { AppTranslations, TRANSLATIONS_EN, TRANSLATIONS_ES } from '../i18n/translations';
 
 @Injectable({
   providedIn: 'root',
 })
 export class IgnisService {
+  // Idioma activo: 'en' (Inglés por defecto como solicitó el usuario) o 'es' (Español)
+  public readonly currentLang = signal<'en' | 'es'>('en');
+
+  // Diccionario reactivo de traducciones para toda la aplicación
+  public readonly t = computed<AppTranslations>(() =>
+    this.currentLang() === 'en' ? TRANSLATIONS_EN : TRANSLATIONS_ES
+  );
+
+  public setLanguage(lang: 'en' | 'es'): void {
+    this.currentLang.set(lang);
+  }
+
+  public toggleLanguage(): void {
+    this.currentLang.update((l) => (l === 'en' ? 'es' : 'en'));
+  }
+
+  // Sensores del Gemelo Digital Basado en Evidencia (ia/acme_geometry_manifest.json & sensor_registry_20013d1.py)
+  public readonly digitalTwinSensors = signal<DigitalTwinSensor[]>([
+    {
+      sensorId: 'TCBurner',
+      label: 'TCBurner · Superficie del Quemador (r = 3.2 mm)',
+      category: 'THERMOCOUPLE',
+      positionXyzM: [0.0, 0.0, 0.0032],
+      pos3D: [0.0, 0.12, 0.08],
+      radialDistanceMm: 3.2,
+      verificationTier: 'GEOMETRIC_APPROXIMATION',
+      epistemicTag: 'OBSERVED',
+      sourceFile: '20013D1_data.csv',
+      originalUnit: 'mV_raw',
+      currentRawValue: 7.65,
+      calibrationVerified: false,
+      calibrationLockNote: 'Prohibido convertir a Kelvin [K] sin tabla de calibración validada.'
+    },
+    {
+      sensorId: 'TCA',
+      label: 'TCA · Rastrillo Radial Interior (r = 8.0 mm)',
+      category: 'THERMOCOUPLE',
+      positionXyzM: [0.008, 0.0, 0.0],
+      pos3D: [0.35, 0.08, 0.0],
+      radialDistanceMm: 8.0,
+      verificationTier: 'GEOMETRIC_APPROXIMATION',
+      epistemicTag: 'OBSERVED',
+      sourceFile: '20013D1_data.csv',
+      originalUnit: 'mV_raw',
+      currentRawValue: 15.95,
+      calibrationVerified: false,
+      calibrationLockNote: 'Termopar interior en zona de reacción; señal en mV sin linealizar.'
+    },
+    {
+      sensorId: 'TCB',
+      label: 'TCB · Rastrillo Radial Medio (r = 15.0 mm)',
+      category: 'THERMOCOUPLE',
+      positionXyzM: [0.015, 0.0, 0.0],
+      pos3D: [0.65, 0.05, 0.0],
+      radialDistanceMm: 15.0,
+      verificationTier: 'GEOMETRIC_APPROXIMATION',
+      epistemicTag: 'OBSERVED',
+      sourceFile: '20013D1_data.csv',
+      originalUnit: 'mV_raw',
+      currentRawValue: 13.15,
+      calibrationVerified: false,
+      calibrationLockNote: 'Termopar en zona de gases calientes; preserva mV instrumentales.'
+    },
+    {
+      sensorId: 'TCC',
+      label: 'TCC · Rastrillo Radial Exterior (r = 25.0 mm)',
+      category: 'THERMOCOUPLE',
+      positionXyzM: [0.025, 0.0, 0.0],
+      pos3D: [0.95, 0.02, 0.0],
+      radialDistanceMm: 25.0,
+      verificationTier: 'GEOMETRIC_APPROXIMATION',
+      epistemicTag: 'OBSERVED',
+      sourceFile: '20013D1_data.csv',
+      originalUnit: 'mV_raw',
+      currentRawValue: 8.60,
+      calibrationVerified: false,
+      calibrationLockNote: 'Gradiente periférico; candado epistémico activo.'
+    },
+    {
+      sensorId: 'PMT3',
+      label: 'PMT3 · Fotomultiplicador OH*/CH* (r = 125.0 mm)',
+      category: 'PHOTOMULTIPLIER',
+      positionXyzM: [0.0, 0.120, 0.035],
+      pos3D: [0.0, 0.95, 0.35],
+      radialDistanceMm: 125.0,
+      verificationTier: 'GEOMETRIC_APPROXIMATION',
+      epistemicTag: 'OBSERVED',
+      sourceFile: '20013D1_data.csv',
+      originalUnit: 'V_raw_counts',
+      currentRawValue: 4.20,
+      calibrationVerified: false,
+      calibrationLockNote: 'Conteo óptico crudo en V; no calibrado a concentración absoluta.'
+    },
+    {
+      sensorId: 'RadiometerCenter',
+      label: 'RadiometerCenter · Termopila Schmidt-Boelter (r = 154.0 mm)',
+      category: 'RADIOMETER',
+      positionXyzM: [0.0, -0.154, 0.0],
+      pos3D: [0.0, -0.95, 0.0],
+      radialDistanceMm: 154.0,
+      verificationTier: 'VERIFIED_DIMENSION',
+      epistemicTag: 'OBSERVED',
+      sourceFile: '20013D1_data.csv',
+      originalUnit: 'mV_raw_irradiance',
+      currentRawValue: 2.90,
+      calibrationVerified: false,
+      calibrationLockNote: 'Distancia nominal verificada (154 mm); irradiancia en mV.'
+    },
+    {
+      sensorId: 'MFC2',
+      label: 'MFC2 · Inyector de Flujo Másico (Conducto -X)',
+      category: 'MASS_FLOW_CONTROLLER',
+      positionXyzM: [-0.045, 0.0, -0.060],
+      pos3D: [-0.75, -0.55, -0.35],
+      radialDistanceMm: 75.0,
+      verificationTier: 'GEOMETRIC_APPROXIMATION',
+      epistemicTag: 'OBSERVED',
+      sourceFile: '20013D1_mfcSetpoints.csv',
+      originalUnit: 'V',
+      currentRawValue: 1.82,
+      calibrationVerified: false,
+      calibrationLockNote: 'Consigna eléctrica en Voltios [V]; no interpretable como kg/s.'
+    },
+    {
+      sensorId: 'MFC3',
+      label: 'MFC3 · Inyector de Flujo Másico (Conducto +X)',
+      category: 'MASS_FLOW_CONTROLLER',
+      positionXyzM: [0.045, 0.0, -0.060],
+      pos3D: [0.75, -0.55, -0.35],
+      radialDistanceMm: 75.0,
+      verificationTier: 'GEOMETRIC_APPROXIMATION',
+      epistemicTag: 'OBSERVED',
+      sourceFile: '20013D1_mfcSetpoints.csv',
+      originalUnit: 'V',
+      currentRawValue: 3.10,
+      calibrationVerified: false,
+      calibrationLockNote: 'Consigna eléctrica en Voltios [V]; candado activo sin calibración.'
+    }
+  ]);
+
+  // Sonda de sensor seleccionada para inspección detallada en 3D
+  public readonly activeSensorDetail = signal<DigitalTwinSensor | null>(null);
+
+  public selectSensorDetail(sensor: DigitalTwinSensor | null): void {
+    this.activeSensorDetail.set(sensor);
+  }
+
+  // 42 Eventos Discretos de MFC2/MFC3 (ia/data_bridge_20013d1.py)
+  public readonly discreteMfcEvents = signal<MfcDiscreteEvent[]>([
+    { eventIndex: 1, timeSec: 0.0, mfc2V: 0.00, mfc3V: 0.00, phaseNote: 'Pre-ignición (Líneas cerradas)' },
+    { eventIndex: 5, timeSec: 14.2, mfc2V: 0.85, mfc3V: 1.20, phaseNote: 'Establecimiento de flujo laminar' },
+    { eventIndex: 10, timeSec: 26.5, mfc2V: 1.20, mfc3V: 1.95, phaseNote: 'Ignición asistida por chispa' },
+    { eventIndex: 15, timeSec: 41.0, mfc2V: 1.60, mfc3V: 2.65, phaseNote: 'Transitorio de crecimiento difusivo' },
+    { eventIndex: 20, timeSec: 55.4, mfc2V: 1.82, mfc3V: 3.10, phaseNote: 'Pico nominal de llama esférica (ACME)' },
+    { eventIndex: 25, timeSec: 72.0, mfc2V: 1.95, mfc3V: 3.05, phaseNote: 'Régimen cuasi-estacionario' },
+    { eventIndex: 30, timeSec: 88.5, mfc2V: 1.70, mfc3V: 2.80, phaseNote: 'Modulación de diluyente N2' },
+    { eventIndex: 35, timeSec: 104.2, mfc2V: 1.35, mfc3V: 2.10, phaseNote: 'Aproximación al umbral de extinción' },
+    { eventIndex: 40, timeSec: 122.0, mfc2V: 0.70, mfc3V: 1.10, phaseNote: 'Contracción radiativa' },
+    { eventIndex: 42, timeSec: 138.6, mfc2V: 0.00, mfc3V: 0.00, phaseNote: 'Extinción final espontánea (Quench)' }
+  ]);
+
+  public readonly currentMfcEventIndex = signal<number>(20);
+
+  public setMfcEventIndex(idx: number): void {
+    this.currentMfcEventIndex.set(idx);
+    const evt = this.discreteMfcEvents().find(e => e.eventIndex === idx);
+    if (evt) {
+      this.digitalTwinSensors.update(sensors => sensors.map(s => {
+        if (s.sensorId === 'MFC2') return { ...s, currentRawValue: evt.mfc2V };
+        if (s.sensorId === 'MFC3') return { ...s, currentRawValue: evt.mfc3V };
+        return s;
+      }));
+    }
+  }
+
+  // Estado del Clúster Distribuido Ray Zero-Copy & VM3 (ia/ray_cluster_bridge.py)
+  public readonly rayClusterStatus = signal<RayClusterStatus>({
+    ringBufferMb: 64,
+    taskLatencyMs: 38,
+    workerVm: 'VM3 (Spacecraft Flight Node)',
+    isSynced: true,
+    activeSwarmNodes: 4
+  });
   // Modo de color (Light / Dark estilo Apple)
   public readonly isDarkMode = signal<boolean>(false);
 
@@ -55,7 +242,7 @@ export class IgnisService {
   public readonly scientificMode = signal<ScientificRealityMode>('simulation');
 
   // Sub-modo para Vista B (Inferencia): 'bayesian' o 'counterfactual'
-  public readonly inferenceSubMode = signal<'bayesian' | 'counterfactual'>('bayesian');
+  public readonly inferenceSubMode = signal<'bayesian' | 'counterfactual' | 'digital-twin'>('bayesian');
 
   // Sub-panel en Simulación para desaturar los controles: 'all' | 'atmosphere' | 'fluid' | 'suppression'
   public readonly simulationPanel = signal<'all' | 'atmosphere' | 'fluid' | 'suppression'>('all');
@@ -931,50 +1118,96 @@ export class IgnisService {
   // =========================================================================
   // 6. MISSION CONTROL 90-SECOND GUIDED DEMO
   // =========================================================================
-  public readonly missionControlSteps: MissionControlStep[] = [
-    {
-      stepIndex: 1,
-      timeRange: '0–20s',
-      title: 'Física Exploratoria en Microgravedad',
-      instruction: 'Modifica el entorno gravitatorio de 1.0 g a 10⁻⁶ g. Observa cómo desaparece el boyamiento convectivo y emerge la esfera difusiva perfecta. Nota la etiqueta explícita de "Visualización Física Exploratoria" que garantiza rigor frente al jurado.',
-      mode: 'simulation',
-      featureKey: 'gravity'
-    },
-    {
-      stepIndex: 2,
-      timeRange: '20–35s',
-      title: 'Modo Realidad Científica · Evidencia NASA',
-      instruction: 'Conmuta a "NASA EVIDENCE". El sistema bloquea especulaciones y muestra únicamente el ensayo 20013D1 con voltajes instrumentales crudos y candado de calibración activo sin unidades falseadas.',
-      mode: 'evidence',
-      featureKey: 'evidence'
-    },
-    {
-      stepIndex: 3,
-      timeRange: '35–50s',
-      title: 'Live Bayesian Inference (Probabilidades Reales)',
-      instruction: 'Conmuta a "INFERENCE" y selecciona el patrón "Solo MFC3 positivo". Las CPT de la red BN-01 calculan probabilidades condicionales reales; si seleccionas un estado fuera del soporte muestral, el sistema declara con honestidad: "Predicción no disponible".',
-      mode: 'inference',
-      featureKey: 'bayesian'
-    },
-    {
-      stepIndex: 4,
-      timeRange: '50–70s',
-      title: 'Factual vs. Counterfactual Explorer',
-      instruction: 'Explora [OBSERVED] vs [HYPOTHETICAL] vs [COMPARE]. Modifica consignas de voltaje con do(MFC) y compara los modelos estructurales M1, M2 y M3 bajo sus cotas de acoplamiento honestas (44.83% ≤ P ≤ 82.21%).',
-      mode: 'inference',
-      featureKey: 'counterfactual'
-    },
-    {
-      stepIndex: 5,
-      timeRange: '70–90s',
-      title: 'What NASA Should Test Next & Evidence Passport',
-      instruction: 'Abre "Sugerir Siguiente Ensayo". IGNIS-μ identifica la Jornada 20176 como la más influyente por validación LOJO, explica su impacto sobre el ATE y genera una Ficha de Propuesta de Investigación lista para la toma de decisiones.',
-      mode: 'evidence',
-      featureKey: 'next-test'
-    }
-  ];
+  public readonly missionControlSteps = computed<MissionControlStep[]>(() => {
+    const isEn = this.currentLang() === 'en';
+    return isEn
+      ? [
+          {
+            stepIndex: 1,
+            timeRange: '0–20s',
+            title: 'Exploratory Physics in Microgravity',
+            instruction: 'Switch gravitational environment from 1.0 g to 10⁻⁶ g. Observe the disappearance of convective buoyancy and the emergence of a symmetric diffusion sphere. Note the explicit "Exploratory Physical Model" badge ensuring scientific honesty.',
+            mode: 'simulation',
+            featureKey: 'gravity'
+          },
+          {
+            stepIndex: 2,
+            timeRange: '20–35s',
+            title: 'Scientific Reality Mode · NASA Evidence',
+            instruction: 'Switch to "NASA EVIDENCE". The system locks speculation and displays trial 20013D1 with raw instrumental voltages and active calibration locks with zero falsified units.',
+            mode: 'evidence',
+            featureKey: 'evidence'
+          },
+          {
+            stepIndex: 3,
+            timeRange: '35–50s',
+            title: 'Live Bayesian Inference (Empirical CPTs)',
+            instruction: 'Switch to "INFERENCE" and select pattern "Solo MFC3 positive". BN-01 CPTs compute genuine conditional probabilities; continuous values outside sample support trigger honest "Prediction unavailable".',
+            mode: 'inference',
+            featureKey: 'bayesian'
+          },
+          {
+            stepIndex: 4,
+            timeRange: '50–70s',
+            title: 'Factual vs. Counterfactual Explorer & Digital Twin',
+            instruction: 'Explore [OBSERVED] vs [HYPOTHETICAL] vs [COMPARE] and the Digital Twin subtab. Scrub the 42 discrete events in Volts and inspect structural causal bounds (44.83% ≤ P ≤ 82.21%).',
+            mode: 'inference',
+            featureKey: 'counterfactual'
+          },
+          {
+            stepIndex: 5,
+            timeRange: '70–90s',
+            title: 'What NASA Should Test Next & Evidence Passport',
+            instruction: 'Open "Suggest Next Experiment". IGNIS-μ identifies Jornada 20176 as the most influential via LOJO validation, explains its ATE shift impact, and generates a structured NASA Research Brief.',
+            mode: 'evidence',
+            featureKey: 'next-test'
+          }
+        ]
+      : [
+          {
+            stepIndex: 1,
+            timeRange: '0–20s',
+            title: 'Física Exploratoria en Microgravedad',
+            instruction: 'Modifica el entorno gravitatorio de 1.0 g a 10⁻⁶ g. Observa cómo desaparece el boyamiento convectivo y emerge la esfera difusiva perfecta. Nota la etiqueta explícita de "Visualización Física Exploratoria" que garantiza rigor frente al jurado.',
+            mode: 'simulation',
+            featureKey: 'gravity'
+          },
+          {
+            stepIndex: 2,
+            timeRange: '20–35s',
+            title: 'Modo Realidad Científica · Evidencia NASA',
+            instruction: 'Conmuta a "NASA EVIDENCE". El sistema bloquea especulaciones y muestra únicamente el ensayo 20013D1 con voltajes instrumentales crudos y candado de calibración activo sin unidades falseadas.',
+            mode: 'evidence',
+            featureKey: 'evidence'
+          },
+          {
+            stepIndex: 3,
+            timeRange: '35–50s',
+            title: 'Live Bayesian Inference (Probabilidades Reales)',
+            instruction: 'Conmuta a "INFERENCE" y selecciona el patrón "Solo MFC3 positivo". Las CPT de la red BN-01 calculan probabilidades condicionales reales; si seleccionas un estado fuera del soporte muestral, el sistema declara con honestidad: "Predicción no disponible".',
+            mode: 'inference',
+            featureKey: 'bayesian'
+          },
+          {
+            stepIndex: 4,
+            timeRange: '50–70s',
+            title: 'Factual vs. Counterfactual Explorer & Gemelo Digital',
+            instruction: 'Explora [OBSERVED] vs [HYPOTHETICAL] vs [COMPARE] y la pestaña Gemelo Digital. Navega por los 42 eventos discretos en Voltios y compara las cotas estructurales del SCM (44.83% ≤ P ≤ 82.21%).',
+            mode: 'inference',
+            featureKey: 'counterfactual'
+          },
+          {
+            stepIndex: 5,
+            timeRange: '70–90s',
+            title: 'What NASA Should Test Next & Evidence Passport',
+            instruction: 'Abre "Sugerir Siguiente Ensayo". IGNIS-μ identifica la Jornada 20176 como la más influyente por validación LOJO, explica su impacto sobre el ATE y genera una Ficha de Propuesta de Investigación lista para la toma de decisiones.',
+            mode: 'evidence',
+            featureKey: 'next-test'
+          }
+        ];
+  });
 
-  public setInferenceSubMode(subMode: 'bayesian' | 'counterfactual'): void {
+  public setInferenceSubMode(subMode: 'bayesian' | 'counterfactual' | 'digital-twin'): void {
     this.inferenceSubMode.set(subMode);
   }
 
@@ -993,7 +1226,7 @@ export class IgnisService {
   }
 
   public goToTourStep(step: number): void {
-    if (step < 1 || step > this.missionControlSteps.length) return;
+    if (step < 1 || step > this.missionControlSteps().length) return;
     this.activeTourStep.set(step);
     this.syncTourState(step);
   }
@@ -1001,7 +1234,7 @@ export class IgnisService {
   public nextTourStep(): void {
     const current = this.activeTourStep();
     if (current === null) return;
-    if (current < this.missionControlSteps.length) {
+    if (current < this.missionControlSteps().length) {
       const next = current + 1;
       this.activeTourStep.set(next);
       this.syncTourState(next);
@@ -1024,7 +1257,7 @@ export class IgnisService {
   }
 
   private syncTourState(stepIndex: number): void {
-    const step = this.missionControlSteps[stepIndex - 1];
+    const step = this.missionControlSteps()[stepIndex - 1];
     if (!step) return;
 
     this.setScientificMode(step.mode);

@@ -39,8 +39,18 @@ export class ScenarioControlsComponent {
     this.ignisService.setScientificMode(mode);
   }
 
-  public setInferenceSubMode(subMode: 'bayesian' | 'counterfactual'): void {
+  public setInferenceSubMode(subMode: 'bayesian' | 'counterfactual' | 'digital-twin'): void {
     this.ignisService.setInferenceSubMode(subMode);
+  }
+
+  public onMfcEventChange(event: Event): void {
+    const val = Number((event.target as HTMLInputElement).value);
+    this.ignisService.setMfcEventIndex(val);
+  }
+
+  public getSelectedEvent() {
+    const idx = this.ignisService.currentMfcEventIndex();
+    return this.ignisService.discreteMfcEvents().find(e => e.eventIndex === idx) || this.ignisService.discreteMfcEvents()[0];
   }
 
   public setSimulationPanel(panel: 'all' | 'atmosphere' | 'fluid' | 'suppression'): void {

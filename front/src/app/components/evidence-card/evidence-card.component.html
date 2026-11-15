@@ -127,15 +127,15 @@
   <div class="grounding-grid">
     <div class="grounding-column">
       <div class="ground-point">
-        <span class="ground-label">EVIDENCIA DIRECTA:</span>
+        <span class="ground-label">{{ ignisService.t().evidenceCardDirect }}</span>
         <span class="ground-value nasa-accent">{{ ignisService.evidenceCard().directEvidence }}</span>
       </div>
       <div class="ground-point">
-        <span class="ground-label">EVIDENCIA ANÁLOGA:</span>
+        <span class="ground-label">{{ ignisService.t().evidenceCardAnalogous }}</span>
         <span class="ground-value">{{ ignisService.evidenceCard().analogousEvidence }}</span>
       </div>
       <div class="ground-point">
-        <span class="ground-label">ANÁLISIS CONTRAFACTUAL:</span>
+        <span class="ground-label">{{ ignisService.t().counterfactualAnalysis }}</span>
         <p class="ground-body">{{ ignisService.evidenceCard().counterfactual }}</p>
         <button type="button" class="counterfactual-trigger-btn" (click)="applyCounterfactual()">
           <span class="btn-dot"></span>
@@ -147,7 +147,7 @@
     <div class="grounding-column">
       <div class="extrapolation-card">
         <div class="extrap-head">
-          <span class="extrap-tag">[LÍMITES DE EXTRAPOLACIÓN]</span>
+          <span class="extrap-tag">[{{ ignisService.t().limitsOfExtrap }}]</span>
         </div>
         <p class="extrap-text">{{ ignisService.evidenceCard().warning }}</p>
         <div class="tags-cluster">
@@ -163,22 +163,22 @@
   <div class="action-footer">
     <button type="button" class="ios-btn primary" (click)="openDrawer('evidence')">
       <svg class="icon-svg btn-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <span>CONSULTAR EVIDENCIA EXPERIMENTAL (PSI)</span>
+      <span>{{ ignisService.t().consultEvidenceBtn }} (PSI)</span>
     </button>
 
     <button type="button" class="ios-btn danger" (click)="openDrawer('challenge')">
       <svg class="icon-svg btn-icon" viewBox="0 0 24 24"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path><path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path><circle cx="8" cy="12" r="2"></circle></svg>
-      <span>EVALUAR CONTRAEJEMPLO FÍSICO</span>
+      <span>{{ ignisService.t().evaluateCounterexampleBtn }}</span>
     </button>
 
     <button type="button" class="ios-btn secondary" (click)="openDrawer('next-test')">
       <svg class="icon-svg btn-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-      <span>SUGERIR SIGUIENTE ENSAYO</span>
+      <span>{{ ignisService.t().suggestNextTestBtn }}</span>
     </button>
 
     <button type="button" class="ios-btn export" (click)="exportData()">
       <svg class="icon-svg btn-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-      <span>EXPORTAR TELEMETRÍA (JSON)</span>
+      <span>{{ ignisService.t().exportJson }}</span>
     </button>
   </div>
 </div>

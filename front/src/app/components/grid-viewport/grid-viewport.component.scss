@@ -553,3 +553,181 @@
     display: none;
   }
 }
+
+/* Sonda de Sensor Clickable */
+.sensor-pill-3d.clickable {
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    transform: translate(-50%, -50%) scale(1.08);
+    background: var(--bg-card-solid);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 12px rgba(50, 173, 230, 0.35);
+  }
+}
+
+/* Tarjeta Flotante de Inspección Instrumental del Gemelo Digital */
+.sensor-inspector-card {
+  position: absolute;
+  top: 50px;
+  right: 12px;
+  width: 290px;
+  max-width: calc(100% - 24px);
+  background: rgba(18, 20, 24, 0.95);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(50, 173, 230, 0.45);
+  border-radius: 10px;
+  padding: 12px 14px;
+  z-index: 30;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.18s ease;
+
+  .inspector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .inspector-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-primary);
+
+      .sensor-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent-orange);
+
+        &.verified {
+          background: var(--accent-green);
+          box-shadow: 0 0 6px var(--accent-green);
+        }
+      }
+
+      .tier-badge {
+        font-size: 0.60rem;
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: rgba(255, 149, 0, 0.15);
+        color: var(--accent-orange);
+        border: 1px solid rgba(255, 149, 0, 0.3);
+
+        &.verified {
+          background: rgba(48, 209, 88, 0.15);
+          color: var(--accent-green);
+          border-color: rgba(48, 209, 88, 0.35);
+        }
+      }
+    }
+
+    .btn-close-inspector {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+
+      &:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.08);
+      }
+    }
+  }
+
+  .sensor-desc {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+    margin: 0;
+  }
+
+  .inspector-metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+
+    .metric-key {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+    }
+
+    .metric-raw {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+  }
+
+  .inspector-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.65rem;
+
+    small {
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    span {
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+    }
+  }
+
+  .lock-alert {
+    background: rgba(255, 69, 58, 0.08);
+    border: 1px dashed rgba(255, 69, 58, 0.35);
+    border-radius: 4px;
+    padding: 6px 8px;
+
+    .lock-tag {
+      font-family: var(--font-mono);
+      font-size: 0.60rem;
+      font-weight: 700;
+      color: var(--accent-red);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    p {
+      font-size: 0.64rem;
+      color: var(--text-secondary);
+      line-height: 1.3;
+      margin: 0;
+    }
+  }
+
+  .passport-link-btn {
+    width: 100%;
+    background: rgba(50, 173, 230, 0.12);
+    border: 1px solid rgba(50, 173, 230, 0.4);
+    color: var(--accent-blue);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: rgba(50, 173, 230, 0.22);
+      color: #fff;
+    }
+  }
+}

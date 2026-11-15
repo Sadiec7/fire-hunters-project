@@ -19,7 +19,7 @@
         [class.active]="ignisService.activeLayer() === 'all'"
         (click)="setLayer('all')"
         title="Síntesis óptica real NASA (Quimioluminiscencia CH*/C2* + Hollín + Quemador)">
-        Óptica NASA
+        {{ ignisService.t().layerAll }}
       </button>
       <button 
         type="button"
@@ -35,7 +35,7 @@
         [class.active]="ignisService.activeLayer() === 'temperature'"
         (click)="setLayer('temperature')"
         title="Campo térmico tridimensional continuo T(r) en Kelvin (Sección 3.4, 9.2)">
-        Campo T(r)
+        {{ ignisService.t().layerTemp }}
       </button>
       <button 
         type="button"
@@ -51,7 +51,7 @@
         [class.active]="ignisService.activeLayer() === 'soot'"
         (click)="setLayer('soot')"
         title="Concha y fracción de masa de partículas de hollín Y_s (Sección 6)">
-        Hollín Y_s
+        {{ ignisService.t().layerSoot }}
       </button>
     </div>
   </div>
@@ -74,13 +74,13 @@
               [class.earth]="ignisService.scenario().gravityMode === 'earth-1g'"></span>
         <span class="badge-text">
           @if (ignisService.scenario().isVentingToSpace) {
-            Purga a Vacío (0 kPa)
+            {{ ignisService.t().vacuumBadge }}
           } @else if (ignisService.scenario().gravityMode === 'earth-1g') {
-            1.0 g (Tierra Convectiva)
+            {{ ignisService.t().earthBadge }}
           } @else if (ignisService.scenario().burnerGeometry === 'sflame-sphere') {
             s-Flame (ACME) · rf={{ ignisService.telemetry().flameRadiusMm }}mm ({{ ignisService.telemetry().gravityG }}g)
           } @else {
-            Muestra Sólida ({{ ignisService.telemetry().gravityG }}g)
+            {{ ignisService.t().solidBadge }} ({{ ignisService.telemetry().gravityG }}g)
           }
         </span>
       </div>
@@ -89,7 +89,7 @@
            (click)="ignisService.openEvidencePassport({ id: 'PASSPORT-3D-FLAME', title: 'Modelo 3D Volumétrico Ilustrativo', epistemicTag: 'UNVERIFIED', transformation: 'Algoritmo de Raymarching en GLSL con balance reactivo Burke-Schumann', limitations: 'Visualización exploratoria para intuición física cualitativa; los valores empíricos normativos provienen de las series temporales de NASA PSI.' })"
            title="Haz clic para ver el Pasaporte de Evidencia">
         <span class="exploratory-dot"></span>
-        <span class="exploratory-text">MODELO ILUSTRATIVO ↗</span>
+        <span class="exploratory-text">{{ ignisService.t().exploratoryBadge }}</span>
       </div>
     </div>
 
@@ -110,7 +110,7 @@
       </div>
     </div>
 
-    <!-- Osciloscopio Flotante de Telemetría Dinámica en Tiempo Real -->
+    <!-- {{ ignisService.t().camOscilloscope }} Flotante de Telemetría Dinámica en Tiempo Real -->
     @if (showLiveChart()) {
       <div class="live-chart-overlay" (mousedown)="$event.stopPropagation()">
         <div class="chart-header">
@@ -155,36 +155,38 @@
       <svg class="icon-svg" viewBox="0 0 24 24">
         <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
       </svg>
-      <span>Arrastra 360° · Rueda zoom</span>
+      <span>{{ ignisService.t().interactionHint }}</span>
     </div>
 
     <!-- Presets de Cámara y Herramientas en Esquina Inferior Derecha (Separados del Top) -->
     <div class="camera-presets-bottom" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
       <button type="button" class="preset-btn" (click)="setCameraView('isometric')" [class.active]="rotX() === 20 && rotY() === -20">
-        3D Órbita
+        {{ ignisService.t().camOrbit }}
       </button>
       <button type="button" class="preset-btn" (click)="setCameraView('top')" [class.active]="rotX() === 75">
-        Cenital (90°)
+        {{ ignisService.t().camTop }}
       </button>
       <button type="button" class="preset-btn" (click)="setCameraView('side')" [class.active]="rotX() === 6">
-        Perfil
+        {{ ignisService.t().camSide }}
       </button>
       <button type="button" class="preset-btn chart-toggle" (click)="toggleLiveChart()" [class.active]="showLiveChart()">
-        Osciloscopio
+        {{ ignisService.t().camOscilloscope }}
       </button>
       <button type="button" class="preset-btn sensors-toggle" (click)="toggleSensors()" [class.active]="showSensors()" title="Mostrar/ocultar sondas de telemetría 3D">
-        Sensores
+        {{ ignisService.t().camSensors }}
       </button>
     </div>
 
-    <!-- Sensores Flotantes Proyectados en Coordenadas de Pantalla (Modo Síntesis Óptica con Toggle Activo) -->
+    <!-- {{ ignisService.t().camSensors }} Flotantes Proyectados en Coordenadas de Pantalla (Modo Síntesis Óptica con Toggle Activo) -->
     @if (showSensors() && ignisService.activeLayer() === 'all') {
       <div class="projected-sensors-overlay">
         @for (s of projectedSensors(); track s.id) {
           @if (s.visible) {
-            <div class="sensor-pill-3d" 
+            <div class="sensor-pill-3d clickable" 
                  [style.left.px]="s.x" 
-                 [style.top.px]="s.y">
+                 [style.top.px]="s.y"
+                 (click)="onSensorClick(s)"
+                 [title]="'Click to inspect ' + s.name + ' in Digital Twin'">
               <span class="sensor-indicator" [class.alert]="s.isWarning"></span>
               <div class="sensor-data">
                 <span class="sensor-title">{{ s.name }}</span>

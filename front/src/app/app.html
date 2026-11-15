@@ -60,8 +60,8 @@
         <div class="tour-top">
           <div class="tour-badge-row">
             <span class="tour-pulse-dot"></span>
-            <span class="tour-step-pill">PASO {{ step }} DE 5 ({{ ignisService.missionControlSteps[step - 1].timeRange }})</span>
-            <span class="tour-mode-tag">Modo: {{ ignisService.missionControlSteps[step - 1].mode.toUpperCase() }}</span>
+            <span class="tour-step-pill">{{ ignisService.t().tourStep }} {{ step }} {{ ignisService.t().tourOf }} 5 ({{ ignisService.missionControlSteps()[step - 1].timeRange }})</span>
+            <span class="tour-mode-tag">{{ ignisService.t().tourMode }} {{ ignisService.missionControlSteps()[step - 1].mode.toUpperCase() }}</span>
           </div>
           <div class="tour-top-actions">
             <button type="button" class="tour-action-btn minimize" (click)="ignisService.toggleTourMinimize()" title="Minimizar tarjeta">
@@ -74,16 +74,16 @@
         </div>
 
         <div class="tour-body">
-          <h4 class="tour-title">{{ ignisService.missionControlSteps[step - 1].title }}</h4>
-          <p class="tour-desc">{{ ignisService.missionControlSteps[step - 1].instruction }}</p>
+          <h4 class="tour-title">{{ ignisService.missionControlSteps()[step - 1].title }}</h4>
+          <p class="tour-desc">{{ ignisService.missionControlSteps()[step - 1].instruction }}</p>
         </div>
 
         <div class="tour-footer">
           <button type="button" class="tour-btn secondary" [disabled]="step === 1" (click)="ignisService.prevTourStep()">
-            ← Anterior
+            {{ ignisService.t().tourPrev }}
           </button>
           <div class="tour-dots">
-            @for (s of ignisService.missionControlSteps; track s.stepIndex) {
+            @for (s of ignisService.missionControlSteps(); track s.stepIndex) {
               <button 
                 type="button" 
                 class="dot-btn" 
@@ -95,7 +95,7 @@
             }
           </div>
           <button type="button" class="tour-btn primary" (click)="ignisService.nextTourStep()">
-            {{ step === 5 ? 'Finalizar Demo' : 'Siguiente Paso →' }}
+            {{ step === 5 ? ignisService.t().tourEnd : ignisService.t().tourNext }}
           </button>
         </div>
       </div>
@@ -104,7 +104,7 @@
       <div class="tour-mini-pill ios-card" (click)="ignisService.toggleTourMinimize()" title="Haz clic para expandir la guía">
         <div class="mini-left">
           <span class="tour-pulse-dot"></span>
-          <span class="mini-step-text">PASO {{ step }}/5: {{ ignisService.missionControlSteps[step - 1].title }}</span>
+          <span class="mini-step-text">{{ ignisService.t().tourStep }} {{ step }}/5: {{ ignisService.missionControlSteps()[step - 1].title }}</span>
         </div>
         <div class="mini-actions">
           <button type="button" class="mini-btn-next" (click)="$event.stopPropagation(); ignisService.nextTourStep()">
