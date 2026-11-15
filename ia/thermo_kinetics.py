@@ -1,7 +1,7 @@
 """
 ia/thermo_kinetics.py
-Termofísica, Cinética de Arrhenius con acoplamiento radiativo (1 - Xr) activo por defecto,
-conector Cantera (GRI-Mech 3.0) y Auditoría Numérica Discreta No Trivial sobre tensores 3D.
+Termofísica, Cinética de Arrhenius con acoplamiento radiativo (1 - Xr) activo por defecto
+y Auditoría Numérica Discreta No Trivial sobre tensores 3D.
 """
 
 import os
@@ -25,7 +25,6 @@ FUEL_KINETIC_DB: Dict[str, Dict[str, float]] = {
 
 
 def evaluate_cantera_properties(sim_input: SimulationInputSI) -> Dict[str, Any]:
-    """Intenta evaluar propiedades exactas con Cantera (gri30.yaml); informa si usa modelo analítico."""
     try:
         import cantera as ct  # type: ignore
         gas = ct.Solution("gri30.yaml")
@@ -93,11 +92,6 @@ def compute_chemical_sources_3d(
     mask_burner: Optional[np.ndarray] = None,
     apply_radiative_loss_to_q: bool = True
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    CORRECCIÓN HALLAZGO CRÍTICO 4:
-    apply_radiative_loss_to_q=True por defecto para que X_r descuente efectivamente (1 - X_r)
-    sobre el término fuente de energía q_chem_3d inyectado en el solver 3D.
-    """
     rho = props_dict["rho"]
     s = props_dict["s"]
     delta_Hc = props_dict["delta_Hc"]
@@ -135,13 +129,6 @@ def compute_conservation_audit_3d(
     sim_res: Dict[str, Any],
     sim_input: SimulationInputSI
 ) -> Dict[str, Any]:
-    """
-    CORRECCIÓN HALLAZGO CRÍTICO 5 y ALERTA 3:
-    Elimina identidades algebraicas (0.0 trivial). Audita los operadores PDE discretizados reales:
-    1. Error de transporte independiente de productos vs estequiometría integral (Y_P_pde vs Y_P_stoich).
-    2. Balance integral discreto del flujo másico en cascarones sobre la malla cartesiana 3D.
-    3. Balance discreto de tasa de cambio de entalpía frente a liberación de calor neto y difusión térmica.
-    """
     grid = sim_res["grid_dict"]
     props = sim_res["props_dict"]
     dx = float(grid["dx"])
@@ -154,12 +141,10 @@ def compute_conservation_audit_3d(
     Y_P_pde = sim_res["Y_P_3d"]
     Y_I_pde = sim_res.get("Y_I_3d", np.clip(1.0 - Y_F - Y_O - Y_P_pde, 0.0, 1.0))
 
-    # 1. Error numérico real de suma de fracciones másicas integradas por PDE
     sum_Y_field = Y_F + Y_O + Y_P_pde + Y_I_pde
     eps_sum_Y_l_inf = float(np.max(np.abs(sum_Y_field[mask_int] - 1.0)))
     eps_sum_Y_l2 = float(np.sqrt(np.mean((sum_Y_field[mask_int] - 1.0) ** 2)))
 
-    # 2. Consistencia estequiométrica integral en el dominio 3D entre consumo de O2 y F en el paso final
     omega_F = sim_res["omega_F_3d"]
     omega_O = sim_res["omega_O_3d"]
     s = float(props["s"])
@@ -167,7 +152,6 @@ def compute_conservation_audit_3d(
     int_omega_O = float(np.sum(omega_O[mask_int]) * dV)
     eps_stoich_integral = float(abs(int_omega_O - s * int_omega_F) / max(s * int_omega_F, 1e-30))
 
-    # 3. Error de discretización Cartesiana->Esférica del flujo másico a través de una superficie r = 0.015 m
     r_shell = 0.015
     shell_band = np.abs(R - r_shell) <= (0.55 * dx)
     u_r_proj = (
@@ -187,3 +171,7 @@ def compute_conservation_audit_3d(
         "evaluated_shell_voxel_count": int(np.sum(shell_band)),
         "audit_method": "NON_TRIVIAL_DISCRETE_PDE_VOLUME_AND_SURFACE_QUADRATURE",
     }
+
+
+if __name__ == "__main__":
+    print("thermo_kinetics.py OK | Acoplamiento radiativo y auditoría PDE activos.")

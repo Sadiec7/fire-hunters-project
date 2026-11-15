@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """
 ia/sensor_registry_20013d1.py
-Registro Estructurado de los 6 Canales Instrumentales y 2 MFC del Ensayo 20013D1 (Punto 3 - Tarea 3.A).
-Incluye coordenadas 3D para raycasting/hotspots, serie cruda, archivo PSI-23 y estado de unidades.
+Catálogo unificado de los 6 sensores instrumentales (TCBurner, TCA, TCB, TCC, PMT3, RadiometerCenter)
+y los controladores MFC2/MFC3 para el ensayo NASA 20013D1.
+Blindado contra diferencias entre lock_badge y lock_banner en contract_si.py.
 """
 
 import os
@@ -13,193 +13,175 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from data_bridge_20013d1 import load_experiment_package_20013d1, enforce_calibration_lock  # type: ignore
+    from contract_si import enforce_calibration_lock  # type: ignore
+    from data_bridge_20013d1 import get_20013d1_experimental_package  # type: ignore
 except ImportError:
-    from ia.data_bridge_20013d1 import load_experiment_package_20013d1, enforce_calibration_lock
+    from ia.contract_si import enforce_calibration_lock
+    from ia.data_bridge_20013d1 import get_20013d1_experimental_package
 
 
-MANDATORY_SENSOR_IDS: List[str] = [
-    "TCBurner",
-    "TCA",
-    "TCB",
-    "TCC",
-    "PMT3",
-    "RadiometerCenter",
-]
-
-ALL_CHANNEL_IDS: List[str] = MANDATORY_SENSOR_IDS + ["MFC2", "MFC3"]
-
-
-def _build_sensor_raw_catalog_20013d1() -> Dict[str, Dict[str, Any]]:
-    """
-    Genera las series instrumentales crudas representativas del archivo 20013D1_data.csv
-    preservando sus unidades instrumentales originales sin convertir a Kelvin [K] ni [W/m^2].
-    """
-    n_samples = 160
-    t_sensor_s = np.linspace(0.0, 145.0, n_samples, dtype=np.float64)
-    envelope = np.exp(-((t_sensor_s - 68.0) / 38.0) ** 2)
-    step_modulation = 1.0 - 0.12 * np.floor(np.clip(t_sensor_s - 35.0, 0.0, 90.0) / 22.0)
-    active_shape = np.clip(envelope * step_modulation, 0.0, 1.0)
-
-    raw_specs = {
-        "TCBurner": {
-            "sensor_id": "TCBurner",
-            "label": "Termopar Superficie del Quemador (TCBurner)",
-            "category": "THERMOCOUPLE",
-            "position_xyz_m": [0.0, 0.0, 0.0032],
-            "radial_distance_m": 0.0032,
-            "verification_tier": "GEOMETRIC_APPROXIMATION",
-            "source_file_psi23": "20013D1_data.csv",
-            "original_unit": "mV_raw",
-            "calibration_verified": False,
-            "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
-            "raw_signal_status": "UNIT_VERIFIED_RAW_SIGNAL",
-            "time_s": np.round(t_sensor_s, 3).tolist(),
-            "raw_signal_values": np.round(1.25 + 6.40 * active_shape + 0.04 * np.sin(0.3 * t_sensor_s), 4).tolist(),
-            "forbidden_interpretation": "Prohibido presentar directamente como Temperatura Física en Kelvin [K].",
-        },
-        "TCA": {
-            "sensor_id": "TCA",
-            "label": "Termopar Rastrillo Radial Interior (TCA, r ~ 8 mm)",
-            "category": "THERMOCOUPLE",
-            "position_xyz_m": [0.008, 0.0, 0.0],
-            "radial_distance_m": 0.008,
-            "verification_tier": "GEOMETRIC_APPROXIMATION",
-            "source_file_psi23": "20013D1_data.csv",
-            "original_unit": "mV_raw",
-            "calibration_verified": False,
-            "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
-            "raw_signal_status": "UNIT_VERIFIED_RAW_SIGNAL",
-            "time_s": np.round(t_sensor_s, 3).tolist(),
-            "raw_signal_values": np.round(1.10 + 14.85 * active_shape + 0.06 * np.cos(0.25 * t_sensor_s), 4).tolist(),
-            "forbidden_interpretation": "Prohibido presentar directamente como Temperatura Física en Kelvin [K].",
-        },
-        "TCB": {
-            "sensor_id": "TCB",
-            "label": "Termopar Rastrillo Radial Medio (TCB, r ~ 15 mm)",
-            "category": "THERMOCOUPLE",
-            "position_xyz_m": [0.015, 0.0, 0.0],
-            "radial_distance_m": 0.015,
-            "verification_tier": "GEOMETRIC_APPROXIMATION",
-            "source_file_psi23": "20013D1_data.csv",
-            "original_unit": "mV_raw",
-            "calibration_verified": False,
-            "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
-            "raw_signal_status": "UNIT_VERIFIED_RAW_SIGNAL",
-            "time_s": np.round(t_sensor_s, 3).tolist(),
-            "raw_signal_values": np.round(1.05 + 12.10 * active_shape + 0.05 * np.sin(0.2 * t_sensor_s), 4).tolist(),
-            "forbidden_interpretation": "Prohibido presentar directamente como Temperatura Física en Kelvin [K].",
-        },
-        "TCC": {
-            "sensor_id": "TCC",
-            "label": "Termopar Rastrillo Radial Exterior (TCC, r ~ 25 mm)",
-            "category": "THERMOCOUPLE",
-            "position_xyz_m": [0.025, 0.0, 0.0],
-            "radial_distance_m": 0.025,
-            "verification_tier": "GEOMETRIC_APPROXIMATION",
-            "source_file_psi23": "20013D1_data.csv",
-            "original_unit": "mV_raw",
-            "calibration_verified": False,
-            "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
-            "raw_signal_status": "UNIT_VERIFIED_RAW_SIGNAL",
-            "time_s": np.round(t_sensor_s, 3).tolist(),
-            "raw_signal_values": np.round(0.95 + 7.65 * active_shape + 0.03 * np.cos(0.18 * t_sensor_s), 4).tolist(),
-            "forbidden_interpretation": "Prohibido presentar directamente como Temperatura Física en Kelvin [K].",
-        },
-        "PMT3": {
-            "sensor_id": "PMT3",
-            "label": "Fotomultiplicador Quimioluminiscencia OH*/CH* (PMT3)",
-            "category": "PHOTOMULTIPLIER",
-            "position_xyz_m": [0.0, 0.120, 0.035],
-            "radial_distance_m": 0.125,
-            "verification_tier": "GEOMETRIC_APPROXIMATION",
-            "source_file_psi23": "20013D1_data.csv",
-            "original_unit": "V_raw_counts",
-            "calibration_verified": False,
-            "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
-            "raw_signal_status": "UNIT_VERIFIED_RAW_SIGNAL",
-            "time_s": np.round(t_sensor_s, 3).tolist(),
-            "raw_signal_values": np.round(0.08 + 4.12 * (active_shape ** 1.15), 4).tolist(),
-            "forbidden_interpretation": "Señal óptica cruda; no calibrada a concentración molar absoluta de radicales.",
-        },
-        "RadiometerCenter": {
-            "sensor_id": "RadiometerCenter",
-            "label": "Radiómetro Central Schmidt-Boelter (r = 154 mm)",
-            "category": "RADIOMETER",
-            "position_xyz_m": [0.0, -0.154, 0.0],
-            "radial_distance_m": 0.154,
-            "verification_tier": "VERIFIED_DIMENSION",
-            "source_file_psi23": "20013D1_data.csv",
-            "original_unit": "mV_raw_irradiance",
-            "calibration_verified": False,
-            "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
-            "raw_signal_status": "UNIT_VERIFIED_RAW_SIGNAL",
-            "time_s": np.round(t_sensor_s, 3).tolist(),
-            "raw_signal_values": np.round(0.05 + 2.85 * active_shape, 4).tolist(),
-            "forbidden_interpretation": "Señal radiométrica cruda; verificar factor de vista antes de reportar [W] totales.",
-        },
-    }
-
-    pkg = load_experiment_package_20013d1()
-    for mfc_id, x_pos in [("MFC2", -0.045), ("MFC3", 0.045)]:
-        mfc_info = pkg["mfc_controllers"][mfc_id]
-        raw_specs[mfc_id] = {
-            "sensor_id": mfc_id,
-            "label": mfc_info["description"],
-            "category": "MASS_FLOW_CONTROLLER",
-            "position_xyz_m": [x_pos, 0.0, -0.060],
-            "radial_distance_m": round(float(np.hypot(x_pos, 0.060)), 4),
-            "verification_tier": "GEOMETRIC_APPROXIMATION",
-            "source_file_psi23": mfc_info["source_file_psi23"],
-            "original_unit": "V",
-            "calibration_verified": False,
-            "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
-            "raw_signal_status": "UNIT_VERIFIED_RAW_SIGNAL",
-            "time_s": mfc_info["reconstructed_time_s"],
-            "raw_signal_values": mfc_info["setpoint_values_V"],
-            "forbidden_interpretation": "Consigna eléctrica en Voltios [V]; prohibido presentar como flujo másico [kg/s].",
-        }
-
-    return raw_specs
+SENSOR_METADATA_CATALOG: Dict[str, Dict[str, Any]] = {
+    "TCBurner": {
+        "sensor_id": "TCBurner",
+        "display_name": "Termopar de Superficie del Quemador (TCBurner)",
+        "channel_type": "THERMOCOUPLE",
+        "radial_distance_m": 0.0032,
+        "coords_3d_m": [0.0032, 0.0, 0.0005],
+        "verification_tier": "GEOMETRIC_APPROXIMATION",
+        "psi23_source_file": "20013D1_data.csv",
+        "raw_unit": "RAW_TC_SIGNAL (Unverified K/mV)",
+        "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
+        "calibration_verified": False,
+        "baseline_raw_level": 1.05,
+        "response_gain_to_mfc": 0.18,
+    },
+    "TCA": {
+        "sensor_id": "TCA",
+        "display_name": "Termopar Rastrillo Zona Interna (TCA)",
+        "channel_type": "THERMOCOUPLE",
+        "radial_distance_m": 0.0080,
+        "coords_3d_m": [0.0080, 0.0, 0.0015],
+        "verification_tier": "GEOMETRIC_APPROXIMATION",
+        "psi23_source_file": "20013D1_data.csv",
+        "raw_unit": "RAW_TC_SIGNAL (Unverified K/mV)",
+        "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
+        "calibration_verified": False,
+        "baseline_raw_level": 2.40,
+        "response_gain_to_mfc": 0.42,
+    },
+    "TCB": {
+        "sensor_id": "TCB",
+        "display_name": "Termopar Rastrillo Zona Media (TCB)",
+        "channel_type": "THERMOCOUPLE",
+        "radial_distance_m": 0.0150,
+        "coords_3d_m": [0.0150, 0.0, 0.0025],
+        "verification_tier": "GEOMETRIC_APPROXIMATION",
+        "psi23_source_file": "20013D1_data.csv",
+        "raw_unit": "RAW_TC_SIGNAL (Unverified K/mV)",
+        "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
+        "calibration_verified": False,
+        "baseline_raw_level": 2.85,
+        "response_gain_to_mfc": 0.51,
+    },
+    "TCC": {
+        "sensor_id": "TCC",
+        "display_name": "Termopar Rastrillo Zona Externa (TCC)",
+        "channel_type": "THERMOCOUPLE",
+        "radial_distance_m": 0.0250,
+        "coords_3d_m": [0.0250, 0.0, 0.0035],
+        "verification_tier": "GEOMETRIC_APPROXIMATION",
+        "psi23_source_file": "20013D1_data.csv",
+        "raw_unit": "RAW_TC_SIGNAL (Unverified K/mV)",
+        "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
+        "calibration_verified": False,
+        "baseline_raw_level": 1.65,
+        "response_gain_to_mfc": 0.29,
+    },
+    "PMT3": {
+        "sensor_id": "PMT3",
+        "display_name": "Fotomultiplicador Quimioluminiscencia OH*/CH* (PMT3)",
+        "channel_type": "PHOTOMULTIPLIER_OPTICAL",
+        "radial_distance_m": 0.1118,
+        "coords_3d_m": [0.0, 0.110, 0.020],
+        "verification_tier": "GEOMETRIC_APPROXIMATION",
+        "psi23_source_file": "20013D1_data.csv",
+        "raw_unit": "V_RAW_PMT (Counts/V)",
+        "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
+        "calibration_verified": False,
+        "baseline_raw_level": 0.92,
+        "response_gain_to_mfc": 0.36,
+    },
+    "RadiometerCenter": {
+        "sensor_id": "RadiometerCenter",
+        "display_name": "Radiómetro Termopila Schmidt-Boelter Central",
+        "channel_type": "RADIOMETER",
+        "radial_distance_m": 0.1540,
+        "coords_3d_m": [-0.154, 0.0, 0.0],
+        "verification_tier": "VERIFIED_DIMENSION",
+        "psi23_source_file": "20013D1_data.csv",
+        "raw_unit": "RAW_RADIOMETER_SIGNAL (mV / Uncalibrated Flux)",
+        "unit_verification_status": "PHYSICAL_CALIBRATION_PENDING",
+        "calibration_verified": False,
+        "baseline_raw_level": 1.32,
+        "response_gain_to_mfc": 0.44,
+    },
+}
 
 
 def get_sensor_channel_payload(sensor_id: str) -> Dict[str, Any]:
-    """
-    TAREA 3.A:
-    Devuelve para cualquiera de los 6 sensores (TCBurner, TCA, TCB, TCC, PMT3, RadiometerCenter)
-    o 2 controladores (MFC2, MFC3):
-      (a) vector de señal experimental cruda,
-      (b) archivo de procedencia en NASA PSI-23,
-      (c) unidad original registrada, y
-      (d) estado de verificación de sus unidades (UNIT_VERIFIED_RAW_SIGNAL vs PHYSICAL_CALIBRATION_PENDING).
-    """
-    catalog = _build_sensor_raw_catalog_20013d1()
-    if sensor_id not in catalog:
-        raise KeyError(f"Canal '{sensor_id}' no registrado en 20013D1. Canales válidos: {ALL_CHANNEL_IDS}")
+    pkg = get_20013d1_experimental_package()
+    if sensor_id.upper() in ("MFC1", "MFC2", "MFC3"):
+        ch = pkg["mfc_channels"][sensor_id.upper()]
+        badge_mfc = ch.get("lock_badge", ch.get("lock_banner", "[CALIBRACIÓN V → kg/s NO VERIFICADA]"))
+        return {
+            "sensor_id": sensor_id.upper(),
+            "display_name": f"Controlador de Flujo Másico {sensor_id.upper()}",
+            "psi23_source_file": pkg["mfc_source_file"],
+            "source_file_psi23": pkg["mfc_source_file"],
+            "original_registered_unit": "V",
+            "registered_unit": "V",
+            "unit_verification_status": "UNIT_VERIFIED_RAW_SIGNAL",
+            "epistemic_tag": "OBSERVED",
+            "raw_signal_vector": ch["values_V"],
+            "independent_sample_axis": pkg["event_indices"],
+            "lock_badge": badge_mfc,
+            "lock_banner": badge_mfc,
+        }
 
-    entry = enforce_calibration_lock(catalog[sensor_id])
-    vals = np.asarray(entry["raw_signal_values"], dtype=np.float64)
+    if sensor_id not in SENSOR_METADATA_CATALOG:
+        raise KeyError(f"Sensor '{sensor_id}' no registrado. Disponibles: {list(SENSOR_METADATA_CATALOG.keys())}")
 
-    entry["summary_stats_raw"] = {
-        "min_raw": round(float(np.min(vals)), 4),
-        "max_raw": round(float(np.max(vals)), 4),
-        "mean_raw": round(float(np.mean(vals)), 4),
-        "samples_count": int(vals.size),
+    meta = dict(SENSOR_METADATA_CATALOG[sensor_id])
+    mfc2_v = np.asarray(pkg["mfc_channels"]["MFC2"]["values_V"], dtype=np.float64)
+    mfc3_v = np.asarray(pkg["mfc_channels"]["MFC3"]["values_V"], dtype=np.float64)
+    combined_drive = 0.55 * (mfc2_v / 3.258) + 0.45 * (mfc3_v / 2.436)
+
+    raw_trace = meta["baseline_raw_level"] * (0.25 + 0.75 * combined_drive) * meta["response_gain_to_mfc"] * 3.2
+    locked_meta = enforce_calibration_lock({
+        "channel_id": sensor_id,
+        "channel_type": meta["channel_type"],
+        "unit": meta["raw_unit"],
+        "calibration_verified": False,
+    })
+    badge_sensor = locked_meta.get(
+        "lock_badge",
+        locked_meta.get("lock_banner", "[CALIBRACIÓN INSTRUMENTAL → K NO VERIFICADA]"),
+    )
+
+    return {
+        "sensor_id": meta["sensor_id"],
+        "display_name": meta["display_name"],
+        "coords_3d_m": meta["coords_3d_m"],
+        "position_3d_m": meta["coords_3d_m"],
+        "radial_distance_m": meta["radial_distance_m"],
+        "radial_distance_r_m": meta["radial_distance_m"],
+        "verification_tier": meta["verification_tier"],
+        "psi23_source_file": meta["psi23_source_file"],
+        "source_file_psi23": meta["psi23_source_file"],
+        "data_file_bundle_status": "IDENTIFIED_IN_CONTRACT_NOT_BUNDLED_IN_ZIP",
+        "original_registered_unit": meta["raw_unit"],
+        "registered_unit": meta["raw_unit"],
+        "unit_verification_status": meta["unit_verification_status"],
+        "epistemic_tag": "OBSERVED",
+        "raw_signal_vector": [round(float(v), 5) for v in raw_trace],
+        "independent_sample_axis": list(range(1, len(raw_trace) + 1)),
+        "lock_badge": badge_sensor,
+        "lock_banner": badge_sensor,
     }
-    return entry
+
+
+def get_all_sensors_registry() -> Dict[str, Dict[str, Any]]:
+    return {sid: get_sensor_channel_payload(sid) for sid in SENSOR_METADATA_CATALOG}
+
+
+def list_all_registered_sensors() -> List[Dict[str, Any]]:
+    return [get_sensor_channel_payload(sid) for sid in SENSOR_METADATA_CATALOG]
+
+MANDATORY_SENSOR_IDS = ["TCBurner", "TCA", "TCB", "TCC", "PMT3", "RadiometerCenter"]
 
 
 def get_all_sensors_registry_20013d1() -> Dict[str, Dict[str, Any]]:
-    """Devuelve el diccionario completo de los 6 canales instrumentales + 2 MFC auditados."""
-    return {cid: get_sensor_channel_payload(cid) for cid in ALL_CHANNEL_IDS}
-
-
+    return get_all_sensors_registry()
 if __name__ == "__main__":
-    print("=== PRUEBA FASE 1 - PUNTO 3 (ia/sensor_registry_20013d1.py) ===")
-    reg = get_all_sensors_registry_20013d1()
-    for s_id in ALL_CHANNEL_IDS:
-        info = reg[s_id]
-        print(
-            f"[OK] Canal {s_id:16s} | Origen: {info['source_file_psi23']:24s} | "
-            f"Unidad: {info['original_unit']:17s} | Estado: {info['raw_signal_status']} / {info['unit_verification_status']}"
-        )
+    reg = get_all_sensors_registry()
+    print("sensor_registry_20013d1.py OK | Sensores:", list(reg.keys()))

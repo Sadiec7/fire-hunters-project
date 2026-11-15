@@ -1,13 +1,12 @@
 """
 ia/domain_query.py
 Clasificación estricta del dominio operativo PSI-23 y métricas puente para la Red Bayesiana IGNIS-mu.
-Corrige Hallazgo Alto 3 (no clasificar puntos cercanos como DOCUMENTED_EXPERIMENT sin ID explícito)
-y Alerta 4 (unifica el margen térmico a T_max - 800.0 K).
 """
 
 import os
 import sys
 from typing import Dict, Any, Optional
+import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -19,7 +18,7 @@ except ImportError:
     from ia.contract_si import SimulationInputSI
     from ia.radial_verification import burke_schumann_spherical_reference
 
-T_EXTINCTION_THRESHOLD_REF_K: float = 800.0  # Unificado a 800.0 K (Alerta 4)
+T_EXTINCTION_THRESHOLD_REF_K: float = 800.0
 
 
 def load_sflame_catalog(csv_path: Optional[str] = None) -> pd.DataFrame:
@@ -27,42 +26,13 @@ def load_sflame_catalog(csv_path: Optional[str] = None) -> pd.DataFrame:
         csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nasa_sflame_experiments.csv")
     if os.path.exists(csv_path):
         return pd.read_csv(csv_path)
-    return pd.DataFrame([
-        {
-            "experiment_id": "SFLAME_39B3",
-            "psi_id": "PSI-23",
-            "mfc_config_file": "MFC_CFG_39B3.csv",
-            "test_day_id": "CIR_DAY_04",
-            "fuel_type": "C2H4",
-            "Y_F_burner": 1.0,
-            "Y_O_ambient": 0.38,
-            "pressure_Pa": 101000.0,
-            "mass_flow_kg_s": 2.55e-6,
-        },
-        {
-            "experiment_id": "SFLAME_94A4",
-            "psi_id": "PSI-23",
-            "mfc_config_file": "MFC_CFG_94A4.csv",
-            "test_day_id": "CIR_DAY_15",
-            "fuel_type": "C2H4",
-            "Y_F_burner": 1.0,
-            "Y_O_ambient": 0.21,
-            "pressure_Pa": 102000.0,
-            "mass_flow_kg_s": 1.156e-6,
-        },
-    ])
+    return pd.DataFrame()
 
 
 def classify_operating_domain(
     sim_input: SimulationInputSI,
     catalog: Optional[pd.DataFrame] = None
 ) -> Dict[str, Any]:
-    """
-    CORRECCIÓN HALLAZGO ALTO 3:
-    Jamás clasifica un escenario como DOCUMENTED_EXPERIMENT por simple proximidad numérica (3.5%).
-    Solo retorna DOCUMENTED_EXPERIMENT si sim_input.experiment_id coincide con un registro oficial
-    y sus parámetros coinciden dentro de tolerancia estricta (< 1e-4).
-    """
     if catalog is None:
         catalog = load_sflame_catalog()
 
@@ -98,10 +68,7 @@ def classify_operating_domain(
         exp_id = str(explicit_id) if explicit_id else f"SYNTHETIC_INTERP_{sim_input.fuel_type}"
         mfc_cfg = "SYNTHETIC_INTERPOLATED_NO_MFC_FILE"
         provenance = "ESTIMADO_FUENTE_CIENTIFICA"
-        warning = (
-            "Escenario sintético interpolado dentro del rango operativo PSI-23. "
-            "No es una corrida experimental directa de NASA."
-        )
+        warning = "Escenario sintético interpolado dentro del rango PSI-23; no es corrida directa de NASA."
     else:
         domain_cls = "EXTRAPOLATION_OUT_OF_DOMAIN"
         exp_id = str(explicit_id) if explicit_id else f"SYNTHETIC_EXTRAP_{sim_input.fuel_type}"
@@ -122,16 +89,23 @@ def classify_operating_domain(
 
 
 def compute_bayesian_bridge_metrics(
-    sim_input: SimulationInputSI,
-    T_max_K: float,
-    q_total_W: float,
+    arg1: Any,
+    arg2: Any,
+    q_total_W: Optional[float] = None,
     T_threshold_ref_K: float = T_EXTINCTION_THRESHOLD_REF_K
 ) -> Dict[str, Any]:
-    """
-    CORRECCIÓN ALERTA 4:
-    Unifica el cálculo de thermal_margin_K usando T_threshold_ref_K = 800.0 K
-    y documenta explícitamente que es un umbral nominal de referencia.
-    """
+    """Soporta tanto (sim_input, T_max_K, q_total_W) como (sim_results_dict, sim_input)."""
+    if isinstance(arg1, SimulationInputSI):
+        sim_input = arg1
+        T_max_K = float(arg2)
+        q_val = float(q_total_W) if q_total_W is not None else 25.0
+    else:
+        sim_res = arg1
+        sim_input = arg2
+        T_max_K = float(sim_res.get("max_temperature_K", np.max(sim_res.get("T_3d", 1600.0))))
+        dx = float(sim_res.get("grid_dict", {}).get("dx", 0.00175))
+        q_val = float(np.sum(sim_res.get("q_chem_3d", 0.0)) * (dx ** 3))
+
     bs = burke_schumann_spherical_reference(mdot_kg_s=sim_input.mass_flow_kg_s)
     uq = getattr(sim_input, "uq_perturbations", {}) or {}
     Xr = float(uq.get("radiative_loss_fraction_Xr", 0.15))
@@ -147,6 +121,11 @@ def compute_bayesian_bridge_metrics(
             "no representa un límite físico de extinción validado experimentalmente."
         ),
         "stoichiometric_Z_st": round(float(bs["Z_st"]), 4),
-        "heat_release_rate_W": round(float(q_total_W), 3),
-        "radiative_power_W": round(float(Xr * q_total_W), 3),
+        "heat_release_rate_W": round(float(q_val), 3),
+        "radiative_power_W": round(float(Xr * q_val), 3),
     }
+
+
+if __name__ == "__main__":
+    s = SimulationInputSI()
+    print("domain_query.py OK | Classification:", classify_operating_domain(s)["domain_classification"])

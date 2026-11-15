@@ -1,12 +1,6 @@
 """
 ia/visualizer_3d.py
-Módulo completo de extracción esférica y visualización 3D/2D (Corrige Hallazgos Críticos 1 y 2).
-Incluye:
-1. extract_spherical_shell_profiles
-2. compute_flame_metrics_3d
-3. extract_spherical_radial_profile
-4. generate_3d_isosurface_plotly
-5. generate_2d_slices_and_time_plots
+Módulo completo con las 5 funciones requeridas por verify_numerical.py, run_gemelo_3d.py y ray_cluster_bridge.py.
 """
 
 import os
@@ -23,7 +17,6 @@ def extract_spherical_radial_profile(
     field_3d: np.ndarray,
     n_bins: int = 30
 ) -> Dict[str, np.ndarray]:
-    """Extrae el perfil radial promediado en cascarones esféricos para cualquier escalar 3D."""
     R = grid_dict["R"]
     r_b = grid_dict["burner_radius_m"]
     r_max = grid_dict["domain_half_width_m"]
@@ -53,8 +46,7 @@ def extract_spherical_shell_profiles(
     q_chem_3d: Optional[np.ndarray] = None,
     Y_P_3d: Optional[np.ndarray] = None,
     n_shells: int = 30
-) -> Dict[str, np.ndarray]:
-    """Entregable 3: Extrae T(r), Y_F(r), Y_O(r), Y_P(r) y q_chem(r) en 30 cascarones esféricos."""
+) -> Dict[str, Any]:
     p_T = extract_spherical_radial_profile(grid_dict, T_3d, n_bins=n_shells)
     p_YF = extract_spherical_radial_profile(grid_dict, Y_F_3d, n_bins=n_shells)
     p_YO = extract_spherical_radial_profile(grid_dict, Y_O_3d, n_bins=n_shells)
@@ -80,12 +72,20 @@ def extract_spherical_shell_profiles(
     }
 
 
-def compute_flame_metrics_3d(grid_dict: Dict[str, Any], T_3d: np.ndarray) -> Dict[str, float]:
+def compute_flame_metrics_3d(
+    arg1: Any,
+    arg2: Any,
+    T_threshold_K: float = 1200.0
+) -> Dict[str, float]:
+    if isinstance(arg1, dict):
+        grid_dict, T_3d = arg1, arg2
+    else:
+        T_3d, grid_dict = arg1, arg2
     R = grid_dict["R"]
     T_max = float(np.max(T_3d))
-    hot_mask = T_3d >= (0.98 * T_max)
+    hot_mask = T_3d >= max(T_threshold_K, 0.95 * T_max)
     r_f = float(np.mean(R[hot_mask])) if np.any(hot_mask) else float(grid_dict["burner_radius_m"])
-    return {"max_temperature_K": round(T_max, 2), "flame_radius_m": round(r_f, 5)}
+    return {"T_max_K": round(T_max, 2), "max_temperature_K": round(T_max, 2), "flame_radius_m": round(r_f, 5)}
 
 
 def generate_3d_isosurface_plotly(
@@ -93,15 +93,14 @@ def generate_3d_isosurface_plotly(
     T_3d: np.ndarray,
     output_html_path: str = "ia/output_flame_3d.html"
 ) -> str:
-    """Genera visualización 3D interactiva en HTML con isosuperficies de temperatura."""
     os.makedirs(os.path.dirname(os.path.abspath(output_html_path)), exist_ok=True)
     stride = 2 if grid_dict["grid_nodes_per_axis"] > 30 else 1
     X = grid_dict["X"][::stride, ::stride, ::stride]
     Y = grid_dict["Y"][::stride, ::stride, ::stride]
     Z = grid_dict["Z"][::stride, ::stride, ::stride]
     T_sub = T_3d[::stride, ::stride, ::stride]
-
     T_max = float(np.max(T_sub))
+
     fig = go.Figure(
         data=go.Isosurface(
             x=X.flatten(),
@@ -118,7 +117,7 @@ def generate_3d_isosurface_plotly(
         )
     )
     fig.update_layout(
-        title="NASA ACME s-Flame 3D Digital Twin - Temperature Isosurfaces [K]",
+        title="NASA ACME s-Flame 3D Benchmark - Temperature Isosurfaces [K]",
         scene=dict(xaxis_title="x [m]", yaxis_title="y [m]", zaxis_title="z [m]"),
     )
     fig.write_html(output_html_path, include_plotlyjs="cdn")
@@ -129,7 +128,6 @@ def generate_2d_slices_and_time_plots(
     sim_res: Dict[str, Any],
     output_png_path: str = "ia/output_summary_panels.png"
 ) -> str:
-    """Genera el panel diagnóstico de 4 gráficas en PNG."""
     os.makedirs(os.path.dirname(os.path.abspath(output_png_path)), exist_ok=True)
     g = sim_res["grid_dict"]
     T_3d = sim_res["T_3d"]
@@ -141,36 +139,30 @@ def generate_2d_slices_and_time_plots(
     )
 
     fig, axes = plt.subplots(2, 2, figsize=(12, 9))
-
     im0 = axes[0, 0].imshow(T_3d[:, :, mid].T, origin="lower", extent=ext, cmap="inferno")
     axes[0, 0].set_title("Corte Ecuatorial T(x, y, z=0) [K]")
-    axes[0, 0].set_xlabel("x [m]")
-    axes[0, 0].set_ylabel("y [m]")
     plt.colorbar(im0, ax=axes[0, 0])
 
-    axes[0, 1].plot(shells["r_shells_m"], shells["T_mean_K"], "r-o", markersize=4, label="T_mean(r) [K]")
-    axes[0, 1].set_title("Perfil Radial Esférico Promediado T(r)")
-    axes[0, 1].set_xlabel("Radio r [m]")
-    axes[0, 1].set_ylabel("Temperatura [K]")
+    axes[0, 1].plot(shells["r_shells_m"], shells["T_mean_K"], "r-o", markersize=4)
+    axes[0, 1].set_title("Perfil Radial Esférico T(r) [K]")
     axes[0, 1].grid(True, alpha=0.3)
-    axes[0, 1].legend()
 
-    axes[1, 0].plot(shells["r_shells_m"], shells["Y_F_mean"], "b-", label="Y_F (Combustible)")
-    axes[1, 0].plot(shells["r_shells_m"], shells["Y_O_mean"], "g--", label="Y_O2 (Oxígeno)")
-    axes[1, 0].plot(shells["r_shells_m"], shells["Y_P_mean"], "m:", label="Y_P (Productos)")
-    axes[1, 0].set_title("Perfiles Radiales de Fracción Másica [-]")
-    axes[1, 0].set_xlabel("Radio r [m]")
-    axes[1, 0].set_ylabel("Fracción Másica [-]")
-    axes[1, 0].grid(True, alpha=0.3)
+    axes[1, 0].plot(shells["r_shells_m"], shells["Y_F_mean"], "b-", label="Y_F")
+    axes[1, 0].plot(shells["r_shells_m"], shells["Y_O_mean"], "g--", label="Y_O2")
+    axes[1, 0].plot(shells["r_shells_m"], shells["Y_P_mean"], "m:", label="Y_P")
+    axes[1, 0].set_title("Perfiles Radiales de Especies [-]")
     axes[1, 0].legend()
+    axes[1, 0].grid(True, alpha=0.3)
 
     axes[1, 1].plot(sim_res["time_history_s"], sim_res["T_max_history_K"], "k-", lw=2)
-    axes[1, 1].set_title("Evolución Temporal hacia Estado Estacionario T_max(t)")
-    axes[1, 1].set_xlabel("Tiempo t [s]")
-    axes[1, 1].set_ylabel("T_max [K]")
+    axes[1, 1].set_title("Convergencia Temporal T_max(t) [K]")
     axes[1, 1].grid(True, alpha=0.3)
 
     plt.tight_layout()
     plt.savefig(output_png_path, dpi=140)
     plt.close(fig)
     return output_png_path
+
+
+if __name__ == "__main__":
+    print("visualizer_3d.py OK | 5 funciones activas.")

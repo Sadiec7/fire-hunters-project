@@ -1,209 +1,134 @@
 """
 ia/ray_cluster_bridge.py
-Módulo de Integración Distribuida para los 3 Nodos Docker y el Clúster Ray (4 Workers).
-Cumple con el Punto 1 solicitado por Emmanuel:
-  1. Funciones puras en memoria envueltas con @ray.remote y pre-alojamiento Zero-Copy con ray.put().
-  2. Ejecución masiva de trayectorias (ej. las 1,000 trayectorias de la demo de 2 minutos).
-  3. Contrato exacto de entrada/salida compatible con Supabase (resultados_inferencia_ray),
-     caché autónoma SQLite (spacecraft-node) y shaders WGSL/SDF de Frontend 3D / WebGPU.
+Interfaz de Funciones Puras en Memoria para Ray (@ray.remote / ray.put) y Docker (Requisitos de Emma).
 """
-
-
-import os as _os, sys as _sys
-_IA_DIR = _os.path.dirname(_os.path.abspath(__file__))
-if _IA_DIR not in _sys.path:
-    _sys.path.insert(0, _IA_DIR)
 
 import os
 import sys
-import time
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from grid_3d import create_cartesian_grid_3d  # type: ignore
-    from solver_3d import run_trajectory_step_pure  # type: ignore
+    from contract_si import validate_input_si  # type: ignore
+    from solver_3d import run_transient_simulation_3d  # type: ignore
+    from visualizer_3d import extract_spherical_shell_profiles  # type: ignore
+    from domain_query import compute_bayesian_bridge_metrics  # type: ignore
 except ImportError:
-    from ia.grid_3d import create_cartesian_grid_3d
-    from ia.solver_3d import run_trajectory_step_pure
+    from ia.contract_si import validate_input_si
+    from ia.solver_3d import run_transient_simulation_3d
+    from ia.visualizer_3d import extract_spherical_shell_profiles
+    from ia.domain_query import compute_bayesian_bridge_metrics
 
 try:
     import ray  # type: ignore
     RAY_AVAILABLE = True
 except ImportError:
-    ray = None
     RAY_AVAILABLE = False
 
 
-if RAY_AVAILABLE and ray is not None:
-    @ray.remote(num_cpus=1)
-    def ray_simulate_trajectory_worker(
-        trajectory_input: Dict[str, Any],
-        shared_grid: Dict[str, Any],
-        return_3d_arrays: bool = False
-    ) -> Dict[str, Any]:
-        import os as _os, sys as _sys
-        for _p in ('/workspace/ia', '/workspace'):
-            if _p not in _sys.path:
-                _sys.path.insert(0, _p)
+def evaluate_sflame_trajectory_in_memory(trajectory_params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Función 100% pura en memoria (Cero I/O a disco) para ejecución distribuida con @ray.remote.
+    """
+    mapped = dict(trajectory_params)
 
-        return run_trajectory_step_pure(
-            trajectory_input=trajectory_input,
-            shared_grid=shared_grid,
-            return_3d_arrays=return_3d_arrays,
-        )
+    if "O2_pct" in mapped and "Y_O_ambient" not in mapped:
+        mapped["Y_O_ambient"] = float(mapped["O2_pct"]) / 100.0
+    if "Y_O2_ambient" in mapped and "Y_O_ambient" not in mapped:
+        mapped["Y_O_ambient"] = float(mapped["Y_O2_ambient"])
 
+    uq = dict(mapped.get("uq_perturbations", {}))
+    if "U_ECLSS_m_s" in mapped or "U_ECLSS" in mapped:
+        u_eclss = float(mapped.get("U_ECLSS_m_s", mapped.get("U_ECLSS", 0.0)))
+        uq["residual_gravity_m_s2"] = min(5.0e-4, uq.get("residual_gravity_m_s2", 1.0e-4) + 0.002 * abs(u_eclss))
+    mapped["uq_perturbations"] = uq
 
-def put_shared_grid_in_ray_store(
-    domain_half_width_m: float = 0.035,
-    grid_nodes_per_axis: int = 31,
-    burner_radius_m: float = 0.00318
-) -> Any:
-    grid_dict = create_cartesian_grid_3d(
-        domain_half_width_m=domain_half_width_m,
-        grid_nodes_per_axis=grid_nodes_per_axis,
-        burner_radius_m=burner_radius_m,
-    )
-    if RAY_AVAILABLE and ray is not None and ray.is_initialized():
-        return ray.put(grid_dict)
-    return grid_dict
+    sim_input = validate_input_si(mapped)
+    max_steps = trajectory_params.get("max_steps", None)
+    sim_results = run_transient_simulation_3d(sim_input=sim_input, max_steps=max_steps)
 
+    grid_dict = sim_results["grid_dict"]
+    props = sim_results["props_dict"]
+    T_3d = sim_results["T_3d"]
+    Y_F_3d = sim_results["Y_F_3d"]
+    Y_O_3d = sim_results["Y_O_3d"]
+    Y_P_3d = sim_results["Y_P_3d"]
+    q_chem_3d = sim_results["q_chem_3d"]
 
-def generate_trajectory_swarm_inputs(
-    n_trajectories: int = 1000,
-    base_fuel: str = "C2H4",
-    seed: int = 42,
-    intervention_do: Optional[Dict[str, Any]] = None,
-    grid_nodes_per_axis: int = 25
-) -> List[Dict[str, Any]]:
-    rng = np.random.default_rng(seed)
-    batch: List[Dict[str, Any]] = []
+    shells = extract_spherical_shell_profiles(grid_dict, T_3d, Y_F_3d, Y_O_3d, q_chem_3d, Y_P_3d)
+    dV = float(grid_dict["dx"] ** 3)
+    q_total_W = float(np.sum(q_chem_3d) * dV)
+    bayesian = compute_bayesian_bridge_metrics(sim_input, sim_results["max_temperature_K"], q_total_W)
 
-    for i in range(n_trajectories):
-        o2_pct = float(rng.uniform(17.5, 34.0))
-        pressure_Pa = float(rng.uniform(56500.0, 102000.0))
-        u_eclss = float(rng.uniform(0.0, 0.08))
-        e_field = float(rng.uniform(0.0, 2500.0))
-        mdot = float(rng.uniform(1.2e-6, 3.8e-6))
-        xr = float(rng.uniform(0.10, 0.52))
+    T_max = float(sim_results["max_temperature_K"])
+    T_th = float(bayesian["T_extinction_threshold_ref_K"])
+    p_ext = float(1.0 / (1.0 + np.exp((T_max - (T_th + 330.0)) / 45.0)))
 
-        traj = {
-            "trajectory_id": f"TRAJ_{i + 1:04d}",
-            "experiment_id": "BENCHMARK_SFLAME_C2H4",
-            "execution_mode": "RAY_SWARM_FAST",
-            "fuel_type": base_fuel,
-            "diluent_species": "N2",
-            "Y_F_burner": 1.0,
-            "O2_pct": round(o2_pct, 3),
-            "pressure_Pa": round(pressure_Pa, 1),
-            "T_initial_K": 298.15,
-            "T_burner_K": 300.0,
-            "mass_flow_kg_s": float(f"{mdot:.4e}"),
-            "burner_radius_m": 0.00318,
-            "domain_half_width_m": 0.035,
-            "grid_nodes_per_axis": int(grid_nodes_per_axis),
-            "total_time_s": 1.2,
-            "U_ECLSS": round(u_eclss, 5),
-            "E_FIELD": round(e_field, 2),
-            "uq_perturbations": {
-                "A_preexp_factor": round(float(rng.uniform(0.85, 1.15)), 4),
-                "D_F_factor": round(float(rng.uniform(0.92, 1.08)), 4),
-                "radiative_loss_fraction_Xr": round(xr, 4),
-            },
-            "intervention_do": intervention_do or {},
-        }
-        batch.append(traj)
+    s = float(props["s"])
+    Y_F0 = max(sim_input.Y_F_burner, 1e-6)
+    Y_O0 = max(sim_input.Y_O_ambient, 1e-6)
+    Z_st = 1.0 / (1.0 + (s * Y_F0) / Y_O0)
 
-    return batch
-
-
-def execute_ray_trajectory_swarm(
-    trajectory_inputs: List[Dict[str, Any]],
-    use_ray_cluster: bool = True,
-    comm_sync_state: str = "AUTONOMOUS_SQLITE_FALLBACK"
-) -> Dict[str, Any]:
-    t0 = time.perf_counter()
-    if not trajectory_inputs:
-        raise ValueError("trajectory_inputs no puede ser una lista vacia.")
-
-    sample_in = trajectory_inputs[0]
-    N_grid = int(sample_in.get("grid_nodes_per_axis", 25))
-    L_dom = float(sample_in.get("domain_half_width_m", 0.035))
-    r_b = float(sample_in.get("burner_radius_m", 0.00318))
-
-    ray_used = False
-    if use_ray_cluster and RAY_AVAILABLE and ray is not None:
-        if not ray.is_initialized():
-            try:
-                ray.init(address="auto", ignore_reinit_error=True, runtime_env={"env_vars": {"PYTHONPATH": "/workspace:/workspace/ia"}})
-            except Exception:
-                try:
-                    ray.init(address="auto", ignore_reinit_error=True, runtime_env={"env_vars": {"PYTHONPATH": "/workspace:/workspace/ia"}})
-                except Exception:
-                    ray.init(ignore_reinit_error=True, num_cpus=4, include_dashboard=False)
-        shared_grid_ref = put_shared_grid_in_ray_store(L_dom, N_grid, r_b)
-        futures = [
-            ray_simulate_trajectory_worker.remote(traj, shared_grid_ref, False)
-            for traj in trajectory_inputs
-        ]
-        results: List[Dict[str, Any]] = ray.get(futures)
-        ray_used = True
-    else:
-        shared_grid_local = create_cartesian_grid_3d(L_dom, N_grid, r_b)
-        results = [
-            run_trajectory_step_pure(traj, shared_grid=shared_grid_local, return_3d_arrays=False)
-            for traj in trajectory_inputs
-        ]
-
-    elapsed_s = time.perf_counter() - t0
-    T_max_list = [r["max_temperature_K"] for r in results]
-    rf_list = [r["predicted_flame_radius_m"] for r in results]
-    ext_list = [r["extinction_probability"] for r in results]
-
-    representative_partitions = results[0]["partitions_16"]
+    r_arr = np.asarray(shells["r_shells_m"], dtype=np.float64)
+    YF_r = np.asarray(shells["Y_F_mean"], dtype=np.float64)
+    YO_r = np.asarray(shells["Y_O_mean"], dtype=np.float64)
+    Z_r = np.clip(((s * YF_r / Y_F0) - (YO_r / Y_O0) + 1.0) / (s + 1.0), 0.0, 1.0)
+    dZ_dr = np.gradient(Z_r, r_arr)
+    chi_r = 2.0 * float(props["D_F"]) * (dZ_dr ** 2)
 
     return {
-        "status": "SUCCESS_RAY_SWARM_INFERENCE",
-        "comm_sync_state": comm_sync_state,
-        "sqlite_cached_families": [
-            "ACME_S_FLAME_C2H4",
-            "ACME_S_FLAME_CH4",
-            "ACME_S_FLAME_H2",
-            "PSI23_20013D1_EVIDENCE_ONLY",
-        ],
-        "cluster_execution_metrics": {
-            "ray_distributed_active": ray_used,
-            "trajectories_evaluated": len(results),
-            "execution_time_s": round(elapsed_s, 4),
-            "throughput_trajectories_per_s": round(len(results) / max(elapsed_s, 1e-6), 2),
+        "trajectory_id": str(trajectory_params.get("trajectory_id", "RAY_TRAJ_001")),
+        "in_memory_only": True,
+        "scalars": {
+            "T_max_K": round(T_max, 2),
+            "flame_radius_m": sim_results["predicted_flame_radius_m"],
+            "extinction_probability": round(p_ext, 4),
+            "thermal_margin_K": bayesian["thermal_margin_K"],
+            "damkohler_number": bayesian["damkohler_number"],
+            "heat_release_rate_W": bayesian["heat_release_rate_W"],
+            "radiative_power_W": bayesian["radiative_power_W"],
+            "steady_state_reached": sim_results["convergence_and_residuals"]["steady_state_reached"],
         },
-        "ensemble_summary_si": {
-            "mean_max_temperature_K": round(float(np.mean(T_max_list)), 2),
-            "std_max_temperature_K": round(float(np.std(T_max_list)), 2),
-            "mean_flame_radius_m": round(float(np.mean(rf_list)), 5),
-            "mean_extinction_probability": round(float(np.mean(ext_list)), 4),
-            "cool_flame_fraction_in_swarm": round(
-                float(np.mean([1.0 if r["llamas_frias_global_active"] else 0.0 for r in results])), 4
-            ),
+        "flamelet_1d": {
+            "r_shells_m": r_arr,
+            "Z_mixture_fraction": Z_r,
+            "Z_stoichiometric": float(Z_st),
+            "T_flamelet_K": np.asarray(shells["T_mean_K"], dtype=np.float64),
+            "Y_F_flamelet": YF_r,
+            "Y_O2_flamelet": YO_r,
+            "Y_P_flamelet": np.asarray(shells["Y_P_mean"], dtype=np.float64),
+            "chi_scalar_dissipation_1_s": chi_r,
         },
-        "partitions_16": representative_partitions,
-        "trajectory_records": results,
+        "tensors_3d": {
+            "T_3d": T_3d,
+            "Y_F_3d": Y_F_3d,
+            "Y_O2_3d": Y_O_3d,
+            "Y_P_3d": Y_P_3d,
+            "u_x_3d": sim_results["u_x"],
+            "u_y_3d": sim_results["u_y"],
+            "u_z_3d": sim_results["u_z"],
+            "q_chem_3d": q_chem_3d,
+        },
+        "convergence_and_residuals": sim_results["convergence_and_residuals"],
     }
 
 
+if RAY_AVAILABLE:
+    @ray.remote
+    def ray_remote_sflame_worker(trajectory_params: Dict[str, Any]) -> Dict[str, Any]:
+        return evaluate_sflame_trajectory_in_memory(trajectory_params)
+
+
+def run_batch_trajectories_ray(trajectories: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    if RAY_AVAILABLE and ray.is_initialized():
+        futures = [ray_remote_sflame_worker.remote(t) for t in trajectories]
+        return ray.get(futures)
+    return [evaluate_sflame_trajectory_in_memory(t) for t in trajectories]
+
+
 if __name__ == "__main__":
-    print("=== PRUEBA DEL PUENTE DISTRIBUIDO RAY + WEBGPU (ia/ray_cluster_bridge.py) ===")
-    test_batch = generate_trajectory_swarm_inputs(
-        n_trajectories=8,
-        base_fuel="C2H4",
-        intervention_do={"U_ECLSS": 0.03, "E_FIELD": 1200.0},
-        grid_nodes_per_axis=25,
-    )
-    swarm_out = execute_ray_trajectory_swarm(test_batch, use_ray_cluster=False)
-    print(f"[OK] Estado: {swarm_out['status']} | comm_sync_state: {swarm_out['comm_sync_state']}")
-    print(f"[OK] Metricas de ejecucion: {swarm_out['cluster_execution_metrics']}")
-    print(f"[OK] Resumen del enjambre SI: {swarm_out['ensemble_summary_si']}")
-    p0 = swarm_out["partitions_16"][0]
-    print(f"[OK] Muestra Particion 0 (WebGPU): sector={p0['sector']} | flamelets={p0['flamelets']} | llamas_frias={p0['llamas_frias']}")
+    sample = {"trajectory_id": "TEST_EMMA_01", "fuel_type": "C2H4", "O2_pct": 21.0, "U_ECLSS_m_s": 0.02, "max_steps": 60}
+    out = evaluate_sflame_trajectory_in_memory(sample)
+    print("ray_cluster_bridge.py OK | Escalar:", out["scalars"])

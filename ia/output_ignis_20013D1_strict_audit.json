@@ -1,0 +1,60 @@
+{
+  "schema_version": "0.1-propuesta",
+  "status": "REJECTED_AS_NASA_VALIDATED_CASE",
+  "solver_version": "1.5.0-IGNIS-STATIC-AND-RUNTIME-VERIFIED",
+  "experiment_context": {
+    "investigation_id": "PSI-23",
+    "dataset": "ACME_S_FLAME",
+    "experimental_file_key": "20013D1",
+    "official_experiment_id": null,
+    "test_day_code": "20013",
+    "mfc_config_id": "20013D1_mfcSetpoints.csv",
+    "measurement_file_id": "20013D1_data.csv",
+    "domain_classification": "REJECTED_UNVERIFIED_NASA_INPUTS",
+    "solver_backend": "INTERNAL_3D_FDM",
+    "nasa_provenance_verified": false
+  },
+  "experimental_conditions_raw": {
+    "atmosphere_text": "~21% O2 with N4",
+    "fuel_bottle_text": "66.7% H2 with CH4",
+    "metadata_scope": "jornada",
+    "composition_basis_verified": false
+  },
+  "mfc_observations": {
+    "source_file": "20013D1_mfcSetpoints.csv",
+    "number_of_events": 42,
+    "reconstruction_status": "RECONSTRUIDO",
+    "timezone_verified": false,
+    "voltage_to_mass_flow_calibrated": false
+  },
+  "input_validated_si": {},
+  "missing_physical_inputs": [
+    "pressure_Pa",
+    "T_initial_K",
+    "T_burner_K",
+    "mass_flow_kg_s",
+    "Y_F_burner",
+    "Y_O_ambient"
+  ],
+  "uq_perturbable_params": {},
+  "simulation_result": null,
+  "convergence_and_residuals": null,
+  "quality_manifest_enforcement": {
+    "restrictions_respected": [
+      "No interpretar voltajes como caudales masicos.",
+      "No interpretar sensores crudos como temperatura K.",
+      "No asumir que el orden SQL es cronologico.",
+      "No asumir que el tiempo MFC esta sincronizado con las muestras instrumentales.",
+      "No asignar parametros fisicos sin documentacion.",
+      "No presentar simulaciones exploratorias como resultados validados contra NASA."
+    ],
+    "rejection_reasons": [
+      "RECHAZO SI: Faltan variables físicas obligatorias en SI: ['pressure_Pa', 'T_initial_K', 'T_burner_K', 'mass_flow_kg_s', 'Y_F_burner', 'Y_O_ambient']."
+    ]
+  },
+  "inference_status": {
+    "physical_likelihood_ready": false,
+    "physical_posterior_computed": false,
+    "causal_effect_identified": false
+  }
+}

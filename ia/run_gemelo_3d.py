@@ -92,15 +92,8 @@ def run_simulation_for_ignis(
     run_verifications: bool = False,
     allow_benchmark_fallback: bool = False
 ) -> Dict[str, Any]:
-    """
-    CORRECCIÓN HALLAZGO CRÍTICO 3:
-    allow_benchmark_fallback=False por defecto. Jamás sustituye entradas del usuario por valores
-    predeterminados en silencio cuando recibe una consulta contrafactual o un contrato incompleto.
-    Solo ejecuta el benchmark sintético C2H4 si se solicita explícitamente allow_benchmark_fallback=True
-    o input_dict['is_benchmark'] == True.
-    """
     if input_dict is None:
-        raise ValueError("Error: input_dict no puede ser None. Pase un diccionario con condiciones SI o active allow_benchmark_fallback=True.")
+        raise ValueError("Error: input_dict no puede ser None.")
 
     is_explicit_benchmark = bool(input_dict.get("is_benchmark", False) or allow_benchmark_fallback)
     audit = audit_ignis_contract_20013d1(input_dict)
@@ -157,7 +150,6 @@ def run_simulation_for_ignis(
             },
         }
 
-    # Si el usuario pasó parámetros en input_validated_si o en la raíz, respetarlos estrictamente (sin sobreescribirlos)
     raw_si = input_dict.get("input_validated_si") if isinstance(input_dict.get("input_validated_si"), dict) and len(input_dict.get("input_validated_si")) > 0 else input_dict
     has_user_si = any(k in raw_si for k in ("pressure_Pa", "mass_flow_kg_s", "Y_O_ambient", "Y_F_burner", "fuel_type"))
     sim_input = validate_input_si(raw_si if has_user_si else SimulationInputSI().to_dict())
