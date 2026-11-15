@@ -8,6 +8,12 @@ Cumple con el Punto 1 solicitado por Emmanuel:
      caché autónoma SQLite (spacecraft-node) y shaders WGSL/SDF de Frontend 3D / WebGPU.
 """
 
+
+import os as _os, sys as _sys
+_IA_DIR = _os.path.dirname(_os.path.abspath(__file__))
+if _IA_DIR not in _sys.path:
+    _sys.path.insert(0, _IA_DIR)
+
 import os
 import sys
 import time
@@ -38,6 +44,11 @@ if RAY_AVAILABLE and ray is not None:
         shared_grid: Dict[str, Any],
         return_3d_arrays: bool = False
     ) -> Dict[str, Any]:
+        import os as _os, sys as _sys
+        for _p in ('/workspace/ia', '/workspace'):
+            if _p not in _sys.path:
+                _sys.path.insert(0, _p)
+
         return run_trajectory_step_pure(
             trajectory_input=trajectory_input,
             shared_grid=shared_grid,
@@ -125,7 +136,13 @@ def execute_ray_trajectory_swarm(
     ray_used = False
     if use_ray_cluster and RAY_AVAILABLE and ray is not None:
         if not ray.is_initialized():
-            ray.init(ignore_reinit_error=True, num_cpus=4, include_dashboard=False)
+            try:
+                ray.init(address="auto", ignore_reinit_error=True, runtime_env={"env_vars": {"PYTHONPATH": "/workspace:/workspace/ia"}})
+            except Exception:
+                try:
+                    ray.init(address="auto", ignore_reinit_error=True, runtime_env={"env_vars": {"PYTHONPATH": "/workspace:/workspace/ia"}})
+                except Exception:
+                    ray.init(ignore_reinit_error=True, num_cpus=4, include_dashboard=False)
         shared_grid_ref = put_shared_grid_in_ray_store(L_dom, N_grid, r_b)
         futures = [
             ray_simulate_trajectory_worker.remote(traj, shared_grid_ref, False)
