@@ -14,6 +14,7 @@ def create_cartesian_grid_3d(
     grid_nodes_per_axis: int = 41,
     burner_radius_m: float = 0.00318
 ) -> Dict[str, Any]:
+    """Construye la malla cartesiana 3D estructurada [-L, L]^3 y las máscaras geométricas."""
     L = float(domain_half_width_m)
     N = int(grid_nodes_per_axis)
     r_b = float(burner_radius_m)
@@ -26,7 +27,7 @@ def create_cartesian_grid_3d(
     dy = dx
     dz = dx
 
-    # Verificación de nodos dentro del diámetro del quemador (2*r_b)
+    # Verificación de nodos dentro del diámetro del quemador poroso (2 * r_b)
     nodes_across_burner = (2.0 * r_b) / dx
     burner_resolution_ok = bool(nodes_across_burner >= 3.5)
 
@@ -101,7 +102,6 @@ def compute_prescribed_velocity_3d(
             g_vec = np.array([0.0, 0.0, 1.0], dtype=np.float64)
 
         T_safe = np.maximum(T_3d, T_ambient_K)
-        # (rho_inf - rho) / rho_inf = 1 - T_inf / T
         buoyancy_factor = np.clip(1.0 - (T_ambient_K / T_safe), 0.0, 0.9)
         char_time_s = 0.25
         delta_u_g = char_time_s * buoyancy_factor * float(residual_gravity_m_s2)
@@ -119,4 +119,5 @@ def compute_prescribed_velocity_3d(
 
 if __name__ == "__main__":
     g = create_cartesian_grid_3d(0.035, 41, 0.00318)
-    print("grid_3d.py OK | Nodos en diámetro quemador:", g["nodes_across_burner_diameter"])
+    ux, uy, uz = compute_prescribed_velocity_3d(g, 2.5e-6, 1.15)
+    print(f"grid_3d.py OK | Nodos en diámetro quemador: {g['nodes_across_burner_diameter']}")
