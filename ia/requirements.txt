@@ -1,4 +1,6 @@
 numpy
 scipy
-pytest
+pandas
 matplotlib
+plotly
+pytest
