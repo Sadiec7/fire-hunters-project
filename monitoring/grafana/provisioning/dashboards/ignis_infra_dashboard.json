@@ -1,0 +1,68 @@
+{
+  "id": null,
+  "uid": "ignis-mu-infra",
+  "title": "IGNIS-mu | Monitoreo de Infraestructura Distribuida",
+  "tags": ["ignis-mu", "nasa", "ray"],
+  "timezone": "browser",
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "1. CPU por VM (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [{ "expr": "ignis_vm_cpu_percent", "legendFormat": "{{vm}}" }]
+    },
+    {
+      "id": 2,
+      "title": "2. RAM por VM (MB)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [{ "expr": "ignis_vm_ram_used_mb", "legendFormat": "{{vm}}" }]
+    },
+    {
+      "id": 3,
+      "title": "3. Trabajos Pendientes (Cola)",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 8, "w": 6, "h": 5 },
+      "targets": [{ "expr": "ignis_jobs_pending", "legendFormat": "En cola" }]
+    },
+    {
+      "id": 4,
+      "title": "4. Trabajos Completados",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 8, "w": 6, "h": 5 },
+      "targets": [{ "expr": "ignis_jobs_completed_total", "legendFormat": "Completados" }]
+    },
+    {
+      "id": 5,
+      "title": "5. Errores de Workers",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 8, "w": 6, "h": 5 },
+      "targets": [{ "expr": "ignis_worker_errors_total", "legendFormat": "Caidas/Errores" }]
+    },
+    {
+      "id": 6,
+      "title": "6. Reintentos (Recuperacion Caos)",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 8, "w": 6, "h": 5 },
+      "targets": [{ "expr": "ignis_job_retries_total", "legendFormat": "Reintentos" }]
+    },
+    {
+      "id": 7,
+      "title": "7. Tiempo Promedio por Trabajo (s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 13, "w": 12, "h": 7 },
+      "targets": [{ "expr": "ignis_job_avg_duration_seconds", "legendFormat": "Segundos / tarea LOJO" }]
+    },
+    {
+      "id": 8,
+      "title": "8. Disponibilidad de Nodos y Workers (1=UP, 0=DOWN)",
+      "type": "table",
+      "gridPos": { "x": 12, "y": 13, "w": 12, "h": 7 },
+      "targets": [{ "expr": "ignis_service_up", "format": "table", "instant": true }]
+    }
+  ]
+}

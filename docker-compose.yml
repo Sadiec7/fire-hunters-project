@@ -1,60 +1,108 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: fire-hunters-postgres
-    restart: unless-stopped
+  earth-node:
+    build: .
+    image: pyro-ray-ligero:latest
+    container_name: vm1-earth-node
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: fire_hunters_db
+      - VM_ROLE=EARTH
     ports:
-      - "5433:5432"
+      - "8001:8001"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d fire_hunters_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - ./back:/workspace
+      - ./ia:/workspace/ia
+    working_dir: /workspace
+    networks:
+      ignis-net:
+        aliases:
+          - earth-node
+    command: python /workspace/arquitectura_vms.py
 
-  backend:
-    build: ./back
-    container_name: fire-hunters-backend
-    restart: unless-stopped
-    command: sh -c "npm install && npm start"
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./back:/usr/app
-      - /usr/app/node_modules
+  comm-node:
+    image: pyro-ray-ligero:latest
+    container_name: vm2-comm-node
     environment:
-      - PORT=3000
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=fire_hunters_db
+      - VM_ROLE=COMM
+    ports:
+      - "8002:8002"
     depends_on:
-      postgres:
-        condition: service_healthy
-
-  frontend:
-    build: ./front
-    container_name: fire-hunters-frontend
-    restart: unless-stopped
-    command: sh -c "npm install && npm start"
-    ports:
-      - "4200:4200"
+      - earth-node
     volumes:
-      - ./front:/usr/app
-      - /usr/app/node_modules
-    environment:
-      - WATCHPACK_POLLING=true
-      - CHOKIDAR_USEPOLLING=true
-    depends_on:
-      - backend
+      - ./back:/workspace
+      - ./ia:/workspace/ia
+    working_dir: /workspace
+    networks:
+      ignis-net:
+        aliases:
+          - comm-node
+    command: python /workspace/arquitectura_vms.py
 
-volumes:
-  postgres_data:
+  spacecraft-node:
+    image: pyro-ray-ligero:latest
+    container_name: vm3-spacecraft-node
+    shm_size: "2g"
+    environment:
+      - VM_ROLE=SPACECRAFT
+    ports:
+      - "8000:8000"
+      - "8265:8265"
+      - "10001:10001"
+    depends_on:
+      - comm-node
+    volumes:
+      - ./back:/workspace
+      - ./ia:/workspace/ia
+    working_dir: /workspace
+    networks:
+      ignis-net:
+        aliases:
+          - spacecraft-node
+    command: bash -c "ray start --head --port=6379 --num-cpus=0 --dashboard-host=0.0.0.0 && sleep 2 && python /workspace/arquitectura_vms.py"
+
+  ray-worker:
+    image: pyro-ray-ligero:latest
+    shm_size: "2g"
+    depends_on:
+      - spacecraft-node
+    volumes:
+      - ./back:/workspace
+      - ./ia:/workspace/ia
+    working_dir: /workspace
+    networks:
+      ignis-net:
+    command: bash -c "sleep 4 && ray start --address=spacecraft-node:6379 --num-cpus=2 --block"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ignis-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - spacecraft-node
+    networks:
+      ignis-net:
+        aliases:
+          - prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ignis-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      ignis-net:
+
+networks:
+  ignis-net:
+    name: ignis-net
+    driver: bridge
