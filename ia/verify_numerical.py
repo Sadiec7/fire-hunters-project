@@ -11,17 +11,6 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from ia.contract_si import SimulationInputSI
-    from ia.grid_3d import create_cartesian_grid_3d
-    from ia.operators_3d import laplacian_3d, advection_upwind_3d, step_species_transport_only
-    from ia.radial_verification import analytical_diffusion_1d
-    from ia.solver_3d import (
-        get_physical_properties_si,
-        compute_chemical_sources_3d,
-        run_transient_simulation_3d,
-    )
-    from ia.visualizer_3d import extract_spherical_radial_profile
-except ImportError:
     from contract_si import SimulationInputSI  # type: ignore
     from grid_3d import create_cartesian_grid_3d  # type: ignore
     from operators_3d import laplacian_3d, advection_upwind_3d, step_species_transport_only  # type: ignore
@@ -32,6 +21,17 @@ except ImportError:
         run_transient_simulation_3d,
     )
     from visualizer_3d import extract_spherical_radial_profile  # type: ignore
+except ImportError:
+    from ia.contract_si import SimulationInputSI
+    from ia.grid_3d import create_cartesian_grid_3d
+    from ia.operators_3d import laplacian_3d, advection_upwind_3d, step_species_transport_only
+    from ia.radial_verification import analytical_diffusion_1d
+    from ia.solver_3d import (
+        get_physical_properties_si,
+        compute_chemical_sources_3d,
+        run_transient_simulation_3d,
+    )
+    from ia.visualizer_3d import extract_spherical_radial_profile
 
 
 def test_constant_field() -> Dict[str, Any]:
@@ -115,8 +115,13 @@ def test_stoichiometric_mass_energy_conservation() -> Dict[str, Any]:
 
 
 def test_spherical_isotropy_3d() -> Dict[str, Any]:
-    """Prueba 4: Isotropía esférica en los ejes +X, +Y y +Z sobre la malla cartesiana 3D."""
+    """Prueba 4: Isotropía esférica en los ejes +X, +Y y +Z con gravedad residual cero (g_res = 0)."""
     sim_in = SimulationInputSI(grid_nodes_per_axis=31, total_time_s=0.04)
+    if hasattr(sim_in, "uq_perturbations") and isinstance(sim_in.uq_perturbations, dict):
+        sim_in.uq_perturbations["residual_gravity_m_s2"] = 0.0
+    else:
+        setattr(sim_in, "uq_perturbations", {"residual_gravity_m_s2": 0.0})
+
     res = run_transient_simulation_3d(sim_in, max_steps=50)
     T = res["T_3d"]
     mid = 31 // 2
