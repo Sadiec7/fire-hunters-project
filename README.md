@@ -1,4 +1,9 @@
-# 🔥 IGNIS-μ · Flame in Freefall
+# IGNIS-μ · Flame in Freefall
+<p align="center">
+  <img src="front/public/logo_Fire_Hunters.svg" alt="Fire Hunters Logo" width="130" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(255, 149, 0, 0.4);" />
+  <br>
+  <strong>Team Fire Hunters</strong>
+</p>
 ### Probabilistic & Causal Intelligence for Microgravity Combustion
 **NASA Space Apps Challenge 2026** · Powered by NASA Physical Sciences Informatics (PSI) Open Data
 
