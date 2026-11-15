@@ -39,6 +39,14 @@ export class ScenarioControlsComponent {
     this.ignisService.setScientificMode(mode);
   }
 
+  public setInferenceSubMode(subMode: 'bayesian' | 'counterfactual'): void {
+    this.ignisService.setInferenceSubMode(subMode);
+  }
+
+  public setSimulationPanel(panel: 'all' | 'atmosphere' | 'fluid' | 'suppression'): void {
+    this.ignisService.setSimulationPanel(panel);
+  }
+
   public setMfcPattern(pattern: MfcPatternState): void {
     this.ignisService.setMfcPattern(pattern);
   }

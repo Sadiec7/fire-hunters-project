@@ -121,6 +121,9 @@
         <button type="button" class="preset-btn chart-toggle" (click)="toggleLiveChart()" [class.active]="showLiveChart()">
           Osciloscopio
         </button>
+        <button type="button" class="preset-btn sensors-toggle" (click)="toggleSensors()" [class.active]="showSensors()" title="Mostrar/ocultar sondas de telemetría 3D">
+          Sensores 3D
+        </button>
       </div>
     </div>
 
@@ -172,8 +175,8 @@
       <span>Arrastra para rotar 360° · Rueda para zoom</span>
     </div>
 
-    <!-- Sensores Flotantes Proyectados en Coordenadas de Pantalla (Modo Síntesis Óptica) -->
-    @if (ignisService.activeLayer() === 'all') {
+    <!-- Sensores Flotantes Proyectados en Coordenadas de Pantalla (Modo Síntesis Óptica con Toggle Activo) -->
+    @if (showSensors() && ignisService.activeLayer() === 'all') {
       <div class="projected-sensors-overlay">
         @for (s of projectedSensors(); track s.id) {
           @if (s.visible) {

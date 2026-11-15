@@ -54,37 +54,70 @@
 
 <!-- Barra Flotante de Recorrido Guiado Mission Control (Demo Jurado 90s: P2) -->
 @if (ignisService.activeTourStep(); as step) {
-  <div class="mission-tour-overlay">
-    <div class="tour-card ios-card">
-      <div class="tour-top">
-        <div class="tour-badge-row">
+  <div class="mission-tour-overlay" [class.minimized]="ignisService.isTourMinimized()">
+    @if (!ignisService.isTourMinimized()) {
+      <div class="tour-card ios-card">
+        <div class="tour-top">
+          <div class="tour-badge-row">
+            <span class="tour-pulse-dot"></span>
+            <span class="tour-step-pill">PASO {{ step }} DE 5 ({{ ignisService.missionControlSteps[step - 1].timeRange }})</span>
+            <span class="tour-mode-tag">Modo: {{ ignisService.missionControlSteps[step - 1].mode.toUpperCase() }}</span>
+          </div>
+          <div class="tour-top-actions">
+            <button type="button" class="tour-action-btn minimize" (click)="ignisService.toggleTourMinimize()" title="Minimizar tarjeta">
+              <svg class="icon-svg" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <button type="button" class="tour-action-btn close" (click)="ignisService.closeTour()" aria-label="Finalizar recorrido" title="Finalizar recorrido">
+              <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="tour-body">
+          <h4 class="tour-title">{{ ignisService.missionControlSteps[step - 1].title }}</h4>
+          <p class="tour-desc">{{ ignisService.missionControlSteps[step - 1].instruction }}</p>
+        </div>
+
+        <div class="tour-footer">
+          <button type="button" class="tour-btn secondary" [disabled]="step === 1" (click)="ignisService.prevTourStep()">
+            ← Anterior
+          </button>
+          <div class="tour-dots">
+            @for (s of ignisService.missionControlSteps; track s.stepIndex) {
+              <button 
+                type="button" 
+                class="dot-btn" 
+                [class.active]="s.stepIndex === step" 
+                (click)="ignisService.goToTourStep(s.stepIndex)"
+                [title]="'Ir al Paso ' + s.stepIndex + ': ' + s.title">
+                <span class="dot-inner"></span>
+              </button>
+            }
+          </div>
+          <button type="button" class="tour-btn primary" (click)="ignisService.nextTourStep()">
+            {{ step === 5 ? 'Finalizar Demo' : 'Siguiente Paso →' }}
+          </button>
+        </div>
+      </div>
+    } @else {
+      <!-- Modo Minimizado: Pastilla compacta en el HUD inferior para liberar el 100% de la pantalla -->
+      <div class="tour-mini-pill ios-card" (click)="ignisService.toggleTourMinimize()" title="Haz clic para expandir la guía">
+        <div class="mini-left">
           <span class="tour-pulse-dot"></span>
-          <span class="tour-step-pill">PASO {{ step }} DE 5 ({{ ignisService.missionControlSteps[step - 1].timeRange }})</span>
-          <span class="tour-mode-tag">Modo: {{ ignisService.missionControlSteps[step - 1].mode.toUpperCase() }}</span>
+          <span class="mini-step-text">PASO {{ step }}/5: {{ ignisService.missionControlSteps[step - 1].title }}</span>
         </div>
-        <button type="button" class="tour-close-btn" (click)="ignisService.closeTour()" aria-label="Finalizar recorrido">
-          <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-
-      <div class="tour-body">
-        <h4 class="tour-title">{{ ignisService.missionControlSteps[step - 1].title }}</h4>
-        <p class="tour-desc">{{ ignisService.missionControlSteps[step - 1].instruction }}</p>
-      </div>
-
-      <div class="tour-footer">
-        <button type="button" class="tour-btn secondary" [disabled]="step === 1" (click)="ignisService.prevTourStep()">
-          ← Anterior
-        </button>
-        <div class="tour-dots">
-          @for (s of ignisService.missionControlSteps; track s.stepIndex) {
-            <span class="dot" [class.active]="s.stepIndex === step"></span>
-          }
+        <div class="mini-actions">
+          <button type="button" class="mini-btn-next" (click)="$event.stopPropagation(); ignisService.nextTourStep()">
+            {{ step === 5 ? 'Fin' : 'Siguiente ▶' }}
+          </button>
+          <button type="button" class="mini-btn-icon" (click)="$event.stopPropagation(); ignisService.toggleTourMinimize()" title="Expandir">
+            <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          </button>
+          <button type="button" class="mini-btn-icon" (click)="$event.stopPropagation(); ignisService.closeTour()" title="Cerrar">
+            <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </div>
-        <button type="button" class="tour-btn primary" (click)="ignisService.nextTourStep()">
-          {{ step === 5 ? 'Finalizar Demo' : 'Siguiente Paso →' }}
-        </button>
       </div>
-    </div>
+    }
   </div>
 }

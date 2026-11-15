@@ -41,7 +41,13 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
   // Cámara 3D Orbital (Rotación en espacio 3D y Zoom)
   public readonly rotX = signal<number>(20);   // Inclinación vertical (elevación)
   public readonly rotY = signal<number>(-20);  // Giro horizontal (azimut 360°)
+  // Nivel de zoom y visualización de sensores
   public readonly zoom = signal<number>(1.0);  // Nivel de zoom (0.6x a 2.2x)
+  public readonly showSensors = signal<boolean>(false); // Ocultar sensores por defecto para evitar sobrecarga visual
+
+  public toggleSensors(): void {
+    this.showSensors.update((v) => !v);
+  }
 
   // Sensores proyectados en coordenadas de pantalla
   public readonly projectedSensors = signal<ScreenSensor[]>([]);
@@ -715,8 +721,10 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
         const aspect = Math.min(width, height);
         const focal = 1.85;
 
-        const screenX = width / 2 + (xCam / zCam) * focal * aspect;
-        const screenY = height / 2 - (yCam / zCam) * focal * aspect;
+        const rawX = width / 2 + (xCam / zCam) * focal * aspect;
+        const rawY = height / 2 - (yCam / zCam) * focal * aspect;
+        const screenX = Math.max(75, Math.min(width - 75, rawX));
+        const screenY = Math.max(50, Math.min(height - 50, rawY));
 
         projected.push({
           id: s.id,
@@ -724,7 +732,7 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
           value: s.value,
           x: Math.round(screenX),
           y: Math.round(screenY),
-          visible: screenX > 50 && screenX < width - 50 && screenY > 50 && screenY < height - 50,
+          visible: rawX > 20 && rawX < width - 20 && rawY > 20 && rawY < height - 20,
           isWarning: s.isWarning,
         });
       }

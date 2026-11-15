@@ -57,8 +57,9 @@
 .viewport-col, .controls-col {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
+  height: 590px;
+  max-height: 600px;
+  min-height: 500px;
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
@@ -74,6 +75,7 @@
     min-height: 0 !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 }
 
@@ -124,6 +126,14 @@
   .upper-grid-section {
     grid-template-columns: 1fr;
   }
+  .viewport-col {
+    height: 480px;
+    max-height: 520px;
+  }
+  .controls-col {
+    height: 560px;
+    max-height: 620px;
+  }
   .ios-footer {
     flex-direction: column;
     align-items: flex-start;
@@ -131,40 +141,49 @@
 }
 
 /* ==========================================================================
-   BARRA FLOTANTE DE RECORRIDO GUIADO MISSION CONTROL (DEMO JURADO 90S)
+   BARRA FLOTANTE DE RECORRIDO GUIADO MISSION CONTROL (DEMO JURADO 90S: P2)
+   100% RESPONSIVE, ANTI-CLIPPING Y CON MODO MINIMIZADO
    ========================================================================== */
 .mission-tour-overlay {
   position: fixed;
-  bottom: 24px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 999;
-  width: 90%;
-  max-width: 640px;
-  animation: tourSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1000;
+  width: min(94vw, 560px);
+  max-height: calc(100vh - 28px);
+  pointer-events: none;
+  animation: tourSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 
   .tour-card {
-    background: var(--bg-card);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 149, 0, 0.45);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+    pointer-events: auto;
+    background: rgba(18, 20, 24, 0.94);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 149, 0, 0.5);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    padding: 14px 18px;
+    padding: 12px 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: calc(85vh - 28px);
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .tour-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
 
     .tour-badge-row {
       display: flex;
       align-items: center;
       gap: 8px;
+      min-width: 0;
 
       .tour-pulse-dot {
         width: 8px;
@@ -173,6 +192,7 @@
         background: var(--accent-orange);
         box-shadow: 0 0 8px var(--accent-orange);
         animation: badge-pulse 1.5s infinite;
+        flex-shrink: 0;
       }
 
       .tour-step-pill {
@@ -180,6 +200,7 @@
         font-size: 0.68rem;
         font-weight: 700;
         color: var(--accent-orange);
+        white-space: nowrap;
       }
 
       .tour-mode-tag {
@@ -188,45 +209,61 @@
         background: var(--bg-secondary);
         padding: 2px 6px;
         border-radius: 4px;
+        white-space: nowrap;
       }
     }
 
-    .tour-close-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
+    .tour-top-actions {
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 4px;
-      border-radius: 50%;
-      transition: all 0.15s ease;
+      gap: 6px;
+      flex-shrink: 0;
 
-      .icon-svg {
-        width: 14px;
-        height: 14px;
-      }
+      .tour-action-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        transition: all 0.15s ease;
 
-      &:hover {
-        color: var(--text-primary);
-        background: var(--bg-secondary);
+        .icon-svg {
+          width: 13px;
+          height: 13px;
+        }
+
+        &:hover {
+          color: var(--text-primary);
+          background: rgba(255, 255, 255, 0.08);
+        }
       }
     }
   }
 
   .tour-body {
+    overflow-y: auto;
+    max-height: 160px;
+    padding-right: 4px;
+    margin: 2px 0;
+    scrollbar-width: thin;
+
     .tour-title {
       font-size: 0.85rem;
       font-weight: 700;
       color: var(--text-primary);
       margin: 0 0 4px 0;
+      line-height: 1.25;
     }
 
     .tour-desc {
       font-size: 0.74rem;
       color: var(--text-secondary);
-      line-height: 1.35;
+      line-height: 1.4;
       margin: 0;
     }
   }
@@ -235,23 +272,41 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 4px;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 
     .tour-dots {
       display: flex;
       gap: 6px;
+      align-items: center;
 
-      .dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--border-subtle);
-        transition: all 0.2s ease;
+      .dot-btn {
+        background: transparent;
+        border: none;
+        padding: 4px 2px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-        &.active {
+        .dot-inner {
+          display: block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--border-subtle);
+          transition: all 0.2s ease;
+        }
+
+        &.active .dot-inner {
           width: 18px;
           border-radius: 3px;
           background: var(--accent-orange);
+        }
+
+        &:hover:not(.active) .dot-inner {
+          background: var(--text-muted);
         }
       }
     }
@@ -259,11 +314,12 @@
     .tour-btn {
       border: none;
       border-radius: 6px;
-      padding: 5px 12px;
+      padding: 6px 14px;
       font-size: 0.72rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s ease;
+      white-space: nowrap;
 
       &.primary {
         background: var(--accent-orange);
@@ -284,8 +340,101 @@
         }
 
         &:disabled {
-          opacity: 0.4;
+          opacity: 0.35;
           cursor: not-allowed;
+        }
+      }
+    }
+  }
+
+  /* PASTILLA MINIMIZADA (HUD INFERIOR COMPACTO) */
+  .tour-mini-pill {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: rgba(18, 20, 24, 0.94);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 149, 0, 0.55);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    border-radius: 20px;
+    padding: 6px 12px;
+    gap: 10px;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    .mini-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+
+      .tour-pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-orange);
+        box-shadow: 0 0 8px var(--accent-orange);
+        animation: badge-pulse 1.5s infinite;
+        flex-shrink: 0;
+      }
+
+      .mini-step-text {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .mini-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+
+      .mini-btn-next {
+        border: none;
+        background: var(--accent-orange);
+        color: #fff;
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          filter: brightness(1.1);
+        }
+      }
+
+      .mini-btn-icon {
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.15s ease;
+
+        .icon-svg {
+          width: 12px;
+          height: 12px;
+        }
+
+        &:hover {
+          color: var(--text-primary);
+          background: rgba(255, 255, 255, 0.08);
         }
       }
     }

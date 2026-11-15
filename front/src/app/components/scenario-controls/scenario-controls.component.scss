@@ -17,13 +17,38 @@
   min-width: 0;
   max-width: 100%;
   flex: 1 1 auto;
-  padding: 16px 20px;
+  padding: 14px 18px;
   margin-bottom: 0;
   border-radius: 6px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   box-sizing: border-box;
   overflow: hidden;
+}
+
+.controls-scrollable {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--accent-orange);
+    }
+  }
 }
 
 .card-topbar {
@@ -148,9 +173,88 @@
 .controls-flow {
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 10px;
   flex: 1;
   min-width: 0;
+  padding: 8px 4px;
+}
+
+.simulation-subtabs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 3px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+
+  .subtab-btn {
+    flex: 1 1 auto;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--text-primary);
+    }
+
+    &.active {
+      background: var(--bg-card);
+      color: var(--accent-orange);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 149, 0, 0.35);
+    }
+  }
+}
+
+.panel-section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+  max-width: 100%;
+
+  .section-block-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--border-subtle);
+
+    .block-tag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      background: rgba(50, 173, 230, 0.1);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .block-title {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+  }
 }
 
 .form-row {
@@ -700,8 +804,63 @@
 .inference-flow {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 12px 14px;
+  gap: 12px;
+  padding: 8px 4px;
+}
+
+.inference-subnav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 3px;
+  margin-bottom: 2px;
+  box-sizing: border-box;
+  max-width: 100%;
+
+  .subnav-btn {
+    flex: 1 1 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 7px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+
+    .subnav-num {
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &:hover {
+      color: var(--text-primary);
+    }
+
+    &.active {
+      background: var(--bg-card);
+      color: var(--accent-orange);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 149, 0, 0.35);
+
+      .subnav-num {
+        background: rgba(255, 149, 0, 0.2);
+        color: var(--accent-orange);
+      }
+    }
+  }
 }
 
 .bayesian-intelligence-card, .counterfactual-card {

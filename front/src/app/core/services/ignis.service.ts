@@ -54,6 +54,15 @@ export class IgnisService {
   // 1. Selector de Realidad Científica (Scientific Reality Mode)
   public readonly scientificMode = signal<ScientificRealityMode>('simulation');
 
+  // Sub-modo para Vista B (Inferencia): 'bayesian' o 'counterfactual'
+  public readonly inferenceSubMode = signal<'bayesian' | 'counterfactual'>('bayesian');
+
+  // Sub-panel en Simulación para desaturar los controles: 'all' | 'atmosphere' | 'fluid' | 'suppression'
+  public readonly simulationPanel = signal<'all' | 'atmosphere' | 'fluid' | 'suppression'>('all');
+
+  // Estado minimizado del tour Mission Control
+  public readonly isTourMinimized = signal<boolean>(false);
+
   // 2. Live Bayesian Inference State
   public readonly selectedMfcPattern = signal<MfcPatternState>('solo-mfc3');
   public readonly selectedBayesianModel = signal<BayesianNetworkModel>('BN-01');
@@ -965,9 +974,28 @@ export class IgnisService {
     }
   ];
 
+  public setInferenceSubMode(subMode: 'bayesian' | 'counterfactual'): void {
+    this.inferenceSubMode.set(subMode);
+  }
+
+  public setSimulationPanel(panel: 'all' | 'atmosphere' | 'fluid' | 'suppression'): void {
+    this.simulationPanel.set(panel);
+  }
+
+  public toggleTourMinimize(): void {
+    this.isTourMinimized.update((v) => !v);
+  }
+
   public startMissionControlTour(): void {
     this.activeTourStep.set(1);
-    this.setScientificMode('simulation');
+    this.isTourMinimized.set(false);
+    this.syncTourState(1);
+  }
+
+  public goToTourStep(step: number): void {
+    if (step < 1 || step > this.missionControlSteps.length) return;
+    this.activeTourStep.set(step);
+    this.syncTourState(step);
   }
 
   public nextTourStep(): void {
@@ -976,9 +1004,9 @@ export class IgnisService {
     if (current < this.missionControlSteps.length) {
       const next = current + 1;
       this.activeTourStep.set(next);
-      this.setScientificMode(this.missionControlSteps[next - 1].mode);
+      this.syncTourState(next);
     } else {
-      this.activeTourStep.set(null);
+      this.closeTour();
     }
   }
 
@@ -987,10 +1015,30 @@ export class IgnisService {
     if (current === null || current <= 1) return;
     const prev = current - 1;
     this.activeTourStep.set(prev);
-    this.setScientificMode(this.missionControlSteps[prev - 1].mode);
+    this.syncTourState(prev);
   }
 
   public closeTour(): void {
     this.activeTourStep.set(null);
+    this.isTourMinimized.set(false);
+  }
+
+  private syncTourState(stepIndex: number): void {
+    const step = this.missionControlSteps[stepIndex - 1];
+    if (!step) return;
+
+    this.setScientificMode(step.mode);
+
+    if (step.featureKey === 'gravity') {
+      this.simulationPanel.set('fluid');
+    } else if (step.featureKey === 'bayesian') {
+      this.inferenceSubMode.set('bayesian');
+      this.selectedMfcPattern.set('solo-mfc3');
+    } else if (step.featureKey === 'counterfactual') {
+      this.inferenceSubMode.set('counterfactual');
+      this.counterfactualTab.set('compare');
+    } else if (step.featureKey === 'next-test') {
+      this.openDrawer('next-test');
+    }
   }
 }
