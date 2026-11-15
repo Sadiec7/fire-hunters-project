@@ -1,6 +1,6 @@
 # IGNIS-μ · Flame in Freefall
 <p align="center">
-  <img src="front/public/logo_Fire_Hunters.svg" alt="Fire Hunters Logo" width="130" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(255, 149, 0, 0.4);" />
+  <img src="front/public/logo_F_H.png" alt="Fire Hunters Logo" width="130" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(255, 149, 0, 0.4);" />
   <br>
   <strong>Team Fire Hunters</strong>
 </p>
