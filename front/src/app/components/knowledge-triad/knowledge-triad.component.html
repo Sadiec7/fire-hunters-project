@@ -8,9 +8,9 @@
         <line x1="16" y1="17" x2="8" y2="17"></line>
         <polyline points="10 9 9 9 8 9"></polyline>
       </svg>
-      <h3 class="triad-title">Triada de Certeza Científica</h3>
+      <h3 class="triad-title">{{ ignisService.t().triadHeadlineTitle }}</h3>
     </div>
-    <span class="triad-caption">Diferenciación estricta entre mediciones directas y modelos teóricos</span>
+    <span class="triad-caption">{{ ignisService.t().triadHeadlineSub }}</span>
   </div>
 
   <div class="triad-grid">
@@ -18,7 +18,7 @@
     <div class="triad-card ios-card">
       <div class="col-header">
         <div class="header-indicator green-dot"></div>
-        <h4>Evidencia Observada</h4>
+        <h4>{{ ignisService.t().triadKnow }}</h4>
         <span class="source-tag">NASA PSI</span>
       </div>
 
@@ -41,8 +41,8 @@
     <div class="triad-card ios-card">
       <div class="col-header">
         <div class="header-indicator blue-dot"></div>
-        <h4>Inferencia Causal</h4>
-        <span class="source-tag">Modelos Físicos</span>
+        <h4>{{ ignisService.t().triadInfer }}</h4>
+        <span class="source-tag">{{ ignisService.currentLang() === 'en' ? 'Physical Models' : 'Modelos Físicos' }}</span>
       </div>
 
       <div class="card-list">
@@ -64,8 +64,8 @@
     <div class="triad-card ios-card">
       <div class="col-header">
         <div class="header-indicator orange-dot"></div>
-        <h4>Frontera de Incertidumbre</h4>
-        <span class="source-tag">Sin Datos</span>
+        <h4>{{ ignisService.t().triadDontKnow }}</h4>
+        <span class="source-tag">{{ ignisService.currentLang() === 'en' ? 'No Data' : 'Sin Datos' }}</span>
       </div>
 
       <div class="card-list">

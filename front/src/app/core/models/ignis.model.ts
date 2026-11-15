@@ -59,6 +59,39 @@ export interface CounterfactualComparisonData {
   disclaimer: string;
 }
 
+// NASA ACME 20013D1 Evidence-Based Digital Twin Models (ia/ manifest & sensor registry)
+export interface DigitalTwinSensor {
+  sensorId: string;
+  label: string;
+  category: 'THERMOCOUPLE' | 'PHOTOMULTIPLIER' | 'RADIOMETER' | 'MASS_FLOW_CONTROLLER';
+  positionXyzM: [number, number, number];
+  pos3D: [number, number, number];
+  radialDistanceMm: number;
+  verificationTier: 'VERIFIED_DIMENSION' | 'GEOMETRIC_APPROXIMATION' | 'STRUCTURAL_CAUSAL_MODEL' | 'ILLUSTRATIVE_ONLY';
+  epistemicTag: 'OBSERVED' | 'INFERRED' | 'UNVERIFIED';
+  sourceFile: string;
+  originalUnit: string;
+  currentRawValue: number;
+  calibrationVerified: boolean;
+  calibrationLockNote: string;
+}
+
+export interface MfcDiscreteEvent {
+  eventIndex: number;
+  timeSec: number;
+  mfc2V: number;
+  mfc3V: number;
+  phaseNote: string;
+}
+
+export interface RayClusterStatus {
+  ringBufferMb: number;
+  taskLatencyMs: number;
+  workerVm: string;
+  isSynced: boolean;
+  activeSwarmNodes: number;
+}
+
 // NASA Evidence Passport
 export interface EvidencePassportData {
   id: string;

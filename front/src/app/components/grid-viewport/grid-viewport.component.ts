@@ -20,6 +20,8 @@ interface ScreenSensor {
   y: number;
   visible: boolean;
   isWarning?: boolean;
+  tier?: string;
+  sensorRef?: any;
 }
 
 @Component({
@@ -41,7 +43,19 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
   // Cámara 3D Orbital (Rotación en espacio 3D y Zoom)
   public readonly rotX = signal<number>(20);   // Inclinación vertical (elevación)
   public readonly rotY = signal<number>(-20);  // Giro horizontal (azimut 360°)
+  // Nivel de zoom y visualización de sensores
   public readonly zoom = signal<number>(1.0);  // Nivel de zoom (0.6x a 2.2x)
+  public readonly showSensors = signal<boolean>(false); // Ocultar sensores por defecto para evitar sobrecarga visual
+
+  public toggleSensors(): void {
+    this.showSensors.update((v) => !v);
+  }
+
+  public onSensorClick(s: ScreenSensor): void {
+    if (s.sensorRef) {
+      this.ignisService.selectSensorDetail(s.sensorRef);
+    }
+  }
 
   // Sensores proyectados en coordenadas de pantalla
   public readonly projectedSensors = signal<ScreenSensor[]>([]);
@@ -659,33 +673,6 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
     const height = canvas.clientHeight;
     if (width === 0 || height === 0) return;
 
-    const t = this.ignisService.telemetry();
-
-    // Sensores colocados estratégicamente fuera de la envolvente de la llama
-    const sensorDefs = [
-      {
-        id: 'tc',
-        name: 'Termopar TC-01',
-        value: `${t.thermocoupleTempC} °C`,
-        pos3D: [-0.85, 0.42, 0.2],
-        isWarning: false,
-      },
-      {
-        id: 'rad',
-        name: 'Radiómetro RAD-04',
-        value: `${t.radiometerFluxKwM2} kW/m²`,
-        pos3D: [0.85, 0.42, -0.2],
-        isWarning: false,
-      },
-      {
-        id: 'gas',
-        name: 'Sensor CO / CO₂',
-        value: `${t.coPpm} ppm · ${t.co2Percent}%`,
-        pos3D: [0.85, -0.15, 0.35],
-        isWarning: t.coPpm > 45,
-      },
-    ];
-
     const rx = (this.rotX() * Math.PI) / 180;
     const ry = (this.rotY() * Math.PI) / 180;
     const camDist = 3.2 / this.zoom();
@@ -702,8 +689,9 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
     const up = this.cross3(right, forward);
 
     const projected: ScreenSensor[] = [];
+    const sensors = this.ignisService.digitalTwinSensors();
 
-    for (const s of sensorDefs) {
+    for (const s of sensors) {
       const p = s.pos3D;
       const v = [p[0] - ro[0], p[1] - ro[1], p[2] - ro[2]];
 
@@ -715,17 +703,21 @@ export class GridViewportComponent implements AfterViewInit, OnDestroy {
         const aspect = Math.min(width, height);
         const focal = 1.85;
 
-        const screenX = width / 2 + (xCam / zCam) * focal * aspect;
-        const screenY = height / 2 - (yCam / zCam) * focal * aspect;
+        const rawX = width / 2 + (xCam / zCam) * focal * aspect;
+        const rawY = height / 2 - (yCam / zCam) * focal * aspect;
+        const screenX = Math.max(65, Math.min(width - 65, rawX));
+        const screenY = Math.max(45, Math.min(height - 45, rawY));
 
         projected.push({
-          id: s.id,
-          name: s.name,
-          value: s.value,
+          id: s.sensorId,
+          name: s.sensorId,
+          value: `${s.currentRawValue} ${s.originalUnit}`,
           x: Math.round(screenX),
           y: Math.round(screenY),
-          visible: screenX > 50 && screenX < width - 50 && screenY > 50 && screenY < height - 50,
-          isWarning: s.isWarning,
+          visible: rawX > 15 && rawX < width - 15 && rawY > 15 && rawY < height - 15,
+          isWarning: s.verificationTier === 'VERIFIED_DIMENSION',
+          tier: s.verificationTier,
+          sensorRef: s,
         });
       }
     }

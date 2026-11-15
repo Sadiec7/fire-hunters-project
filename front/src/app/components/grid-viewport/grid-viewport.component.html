@@ -7,8 +7,8 @@
         <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
         <path d="M2 12h20"></path>
       </svg>
-      <span class="header-title">Cámara de Combustión en Microgravedad</span>
-      <span class="ios-badge">{{ ignisService.scenario().material }} · {{ ignisService.scenario().pressureKpa }} kPa</span>
+      <span class="header-title">{{ ignisService.t().chamberTitle }}</span>
+      <span class="ios-badge">{{ ignisService.getTranslatedMaterial() }} · {{ ignisService.scenario().pressureKpa }} kPa</span>
     </div>
 
     <!-- Segmented Control de Capas Físicas (s-Flame ACME Sección 9) -->
@@ -19,7 +19,7 @@
         [class.active]="ignisService.activeLayer() === 'all'"
         (click)="setLayer('all')"
         title="Síntesis óptica real NASA (Quimioluminiscencia CH*/C2* + Hollín + Quemador)">
-        Óptica NASA
+        {{ ignisService.t().layerAll }}
       </button>
       <button 
         type="button"
@@ -35,7 +35,7 @@
         [class.active]="ignisService.activeLayer() === 'temperature'"
         (click)="setLayer('temperature')"
         title="Campo térmico tridimensional continuo T(r) en Kelvin (Sección 3.4, 9.2)">
-        Campo T(r)
+        {{ ignisService.t().layerTemp }}
       </button>
       <button 
         type="button"
@@ -43,7 +43,7 @@
         [class.active]="ignisService.activeLayer() === 'radiation'"
         (click)="setLayer('radiation')"
         title="Divergencia del flujo radiativo q_rad de CO2/H2O (Sección 5, 9.4)">
-        Pérdida q̇_rad
+        {{ ignisService.t().layerRad }}
       </button>
       <button 
         type="button"
@@ -51,7 +51,7 @@
         [class.active]="ignisService.activeLayer() === 'soot'"
         (click)="setLayer('soot')"
         title="Concha y fracción de masa de partículas de hollín Y_s (Sección 6)">
-        Hollín Y_s
+        {{ ignisService.t().layerSoot }}
       </button>
     </div>
   </div>
@@ -66,34 +66,35 @@
     <!-- Canvas WebGL 3D Real (Raymarching Volumétrico) -->
     <canvas #webglCanvas class="webgl-canvas"></canvas>
 
-    <!-- Indicador de Gravedad y Estado en Esquina Superior Izquierda -->
-    <div class="arena-badge-left">
-      <span class="pulse-dot" 
-            [class.alert]="ignisService.scenario().isVentingToSpace" 
-            [class.earth]="ignisService.scenario().gravityMode === 'earth-1g'"></span>
-      <span class="badge-text">
-        @if (ignisService.scenario().isVentingToSpace) {
-          Purga al Vacío Espacial (0 kPa · ΔP: -101.3 kPa · Extinción)
-        } @else if (ignisService.scenario().gravityMode === 'earth-1g') {
-          Gravedad Terrestre (1.0 g) · Penacho Boyante Convectivo (C-1998-485)
-        } @else if (ignisService.scenario().burnerGeometry === 'sflame-sphere') {
-          NASA s-Flame (ACME): Esfera Porosa (rs=6.35 mm) · Llama rf={{ ignisService.telemetry().flameRadiusMm }} mm ({{ ignisService.telemetry().gravityG }} g)
-        } @else {
-          NASA BASS/Saffire: Muestra Plana · Difusión laminar ({{ ignisService.telemetry().gravityG }} g)
-        }
-      </span>
+    <!-- Indicador de Gravedad y Rigor en Esquina Superior Izquierda (Compacto, Anti-Colisión) -->
+    <div class="arena-top-left-hud">
+      <div class="arena-badge-left">
+        <span class="pulse-dot" 
+              [class.alert]="ignisService.scenario().isVentingToSpace" 
+              [class.earth]="ignisService.scenario().gravityMode === 'earth-1g'"></span>
+        <span class="badge-text">
+          @if (ignisService.scenario().isVentingToSpace) {
+            {{ ignisService.t().vacuumBadge }}
+          } @else if (ignisService.scenario().gravityMode === 'earth-1g') {
+            {{ ignisService.t().earthBadge }}
+          } @else if (ignisService.scenario().burnerGeometry === 'sflame-sphere') {
+            s-Flame (ACME) · rf={{ ignisService.telemetry().flameRadiusMm }}mm ({{ ignisService.telemetry().gravityG }}g)
+          } @else {
+            {{ ignisService.t().solidBadge }} ({{ ignisService.telemetry().gravityG }}g)
+          }
+        </span>
+      </div>
+
+      <div class="arena-exploratory-badge" 
+           (click)="ignisService.openEvidencePassport({ id: 'PASSPORT-3D-FLAME', title: 'Modelo 3D Volumétrico Ilustrativo', epistemicTag: 'UNVERIFIED', transformation: 'Algoritmo de Raymarching en GLSL con balance reactivo Burke-Schumann', limitations: 'Visualización exploratoria para intuición física cualitativa; los valores empíricos normativos provienen de las series temporales de NASA PSI.' })"
+           title="Haz clic para ver el Pasaporte de Evidencia">
+        <span class="exploratory-dot"></span>
+        <span class="exploratory-text">{{ ignisService.t().exploratoryBadge }}</span>
+      </div>
     </div>
 
-    <!-- Insignia Discreta de Rigor Científico (Exploratory Physical Visualization) -->
-    <div class="arena-exploratory-badge" 
-         (click)="ignisService.openEvidencePassport({ id: 'PASSPORT-3D-FLAME', title: 'Modelo 3D Volumétrico Ilustrativo', epistemicTag: 'UNVERIFIED', transformation: 'Algoritmo de Raymarching en GLSL con balance reactivo Burke-Schumann', limitations: 'Visualización exploratoria para intuición física cualitativa; los valores empíricos normativos provienen de las series temporales de NASA PSI.' })"
-         title="Haz clic para ver el Pasaporte de Evidencia">
-      <span class="exploratory-dot"></span>
-      <span class="exploratory-text">VISUALIZACIÓN FÍSICA EXPLORATORIA · MODELO ILUSTRATIVO</span>
-    </div>
-
-    <!-- Controles de Cámara Unificados en Esquina Superior Derecha -->
-    <div class="camera-floating-hud" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
+    <!-- Controles de Zoom en Esquina Superior Derecha (Solo Zoom, Ultra-Compacto) -->
+    <div class="camera-floating-zoom" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
       <div class="hud-pill">
         <button type="button" class="hud-icon-btn" (click)="zoomOut()" title="Alejar (-)">
           <svg class="icon-svg" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -104,27 +105,12 @@
         </button>
         <span class="hud-divider"></span>
         <button type="button" class="hud-action-btn" (click)="resetCamera()">
-          Restablecer
-        </button>
-      </div>
-
-      <div class="hud-presets">
-        <button type="button" class="preset-btn" (click)="setCameraView('isometric')" [class.active]="rotX() === 20 && rotY() === -20">
-          3D Órbita
-        </button>
-        <button type="button" class="preset-btn" (click)="setCameraView('top')" [class.active]="rotX() === 75">
-          Cenital (90°)
-        </button>
-        <button type="button" class="preset-btn" (click)="setCameraView('side')" [class.active]="rotX() === 6">
-          Perfil
-        </button>
-        <button type="button" class="preset-btn chart-toggle" (click)="toggleLiveChart()" [class.active]="showLiveChart()">
-          Osciloscopio
+          Reset
         </button>
       </div>
     </div>
 
-    <!-- Osciloscopio Flotante de Telemetría Dinámica en Tiempo Real -->
+    <!-- {{ ignisService.t().camOscilloscope }} Flotante de Telemetría Dinámica en Tiempo Real -->
     @if (showLiveChart()) {
       <div class="live-chart-overlay" (mousedown)="$event.stopPropagation()">
         <div class="chart-header">
@@ -169,17 +155,38 @@
       <svg class="icon-svg" viewBox="0 0 24 24">
         <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
       </svg>
-      <span>Arrastra para rotar 360° · Rueda para zoom</span>
+      <span>{{ ignisService.t().interactionHint }}</span>
     </div>
 
-    <!-- Sensores Flotantes Proyectados en Coordenadas de Pantalla (Modo Síntesis Óptica) -->
-    @if (ignisService.activeLayer() === 'all') {
+    <!-- Presets de Cámara y Herramientas en Esquina Inferior Derecha (Separados del Top) -->
+    <div class="camera-presets-bottom" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
+      <button type="button" class="preset-btn" (click)="setCameraView('isometric')" [class.active]="rotX() === 20 && rotY() === -20">
+        {{ ignisService.t().camOrbit }}
+      </button>
+      <button type="button" class="preset-btn" (click)="setCameraView('top')" [class.active]="rotX() === 75">
+        {{ ignisService.t().camTop }}
+      </button>
+      <button type="button" class="preset-btn" (click)="setCameraView('side')" [class.active]="rotX() === 6">
+        {{ ignisService.t().camSide }}
+      </button>
+      <button type="button" class="preset-btn chart-toggle" (click)="toggleLiveChart()" [class.active]="showLiveChart()">
+        {{ ignisService.t().camOscilloscope }}
+      </button>
+      <button type="button" class="preset-btn sensors-toggle" (click)="toggleSensors()" [class.active]="showSensors()" title="Mostrar/ocultar sondas de telemetría 3D">
+        {{ ignisService.t().camSensors }}
+      </button>
+    </div>
+
+    <!-- {{ ignisService.t().camSensors }} Flotantes Proyectados en Coordenadas de Pantalla (Modo Síntesis Óptica con Toggle Activo) -->
+    @if (showSensors() && ignisService.activeLayer() === 'all') {
       <div class="projected-sensors-overlay">
         @for (s of projectedSensors(); track s.id) {
           @if (s.visible) {
-            <div class="sensor-pill-3d" 
+            <div class="sensor-pill-3d clickable" 
                  [style.left.px]="s.x" 
-                 [style.top.px]="s.y">
+                 [style.top.px]="s.y"
+                 (click)="onSensorClick(s)"
+                 [title]="'Click to inspect ' + s.name + ' in Digital Twin'">
               <span class="sensor-indicator" [class.alert]="s.isWarning"></span>
               <div class="sensor-data">
                 <span class="sensor-title">{{ s.name }}</span>
@@ -196,12 +203,12 @@
   <div class="viewport-footer-metrics">
     <div class="metrics-cluster">
       <div class="metric-block" title="Radio estequiométrico de llama esférica s-Flame (Sección 9.1)">
-        <span class="metric-label">Radio Llama r_f:</span>
+        <span class="metric-label">{{ ignisService.t().flameRadiusLabel }}:</span>
         <span class="metric-val">{{ ignisService.telemetry().flameRadiusMm }} mm</span>
       </div>
       <div class="cluster-divider"></div>
       <div class="metric-block" title="Temperatura pico del frente de llama en Kelvin (Sección 9.2)">
-        <span class="metric-label">T_max:</span>
+        <span class="metric-label">{{ ignisService.t().peakTempLabel }}:</span>
         <span class="metric-val">{{ ignisService.telemetry().maxFlameTempK }} K <small class="metric-sub-val">({{ ignisService.telemetry().thermocoupleTempC }} °C)</small></span>
       </div>
       <div class="cluster-divider"></div>
@@ -216,14 +223,14 @@
       </div>
       <div class="cluster-divider"></div>
       <div class="metric-block" title="Balance térmico neto q_net = q_chem - q_rad (Criterio de extinción 9.5)">
-        <span class="metric-label">Balance Neto:</span>
+        <span class="metric-label">{{ ignisService.t().netThermalBalanceLabel }}:</span>
         <span class="metric-val" [class.danger]="ignisService.telemetry().netThermalBalanceKw <= 0">
           {{ ignisService.telemetry().netThermalBalanceKw > 0 ? '+' : '' }}{{ ignisService.telemetry().netThermalBalanceKw }} kW
         </span>
       </div>
       <div class="cluster-divider"></div>
       <div class="metric-block" title="Probabilidad física de extinción radiativa o convectiva">
-        <span class="metric-label">Extinción:</span>
+        <span class="metric-label">{{ ignisService.t().extinctionLabel }}:</span>
         <span class="metric-val" [class.danger]="ignisService.telemetry().flameExtinctionProb > 0.5">
           {{ (ignisService.telemetry().flameExtinctionProb * 100).toFixed(0) }}%
         </span>
@@ -231,7 +238,7 @@
     </div>
 
     <div class="footer-caption">
-      <span>Gemelo Digital s-Flame (ACME NASA) · Navier-Stokes bajo Mach, Arrhenius y Transferencia Radiativa RTE</span>
+      <span>{{ ignisService.currentLang() === 'en' ? 's-Flame Digital Twin (NASA ACME) · Low-Mach Navier-Stokes, Arrhenius & Radiative Transfer RTE' : 'Gemelo Digital s-Flame (ACME NASA) · Navier-Stokes bajo Mach, Arrhenius y Transferencia Radiativa RTE' }}</span>
     </div>
   </div>
 </div>
