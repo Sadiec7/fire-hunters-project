@@ -543,4 +543,40 @@ export class IgnisService {
   public closeDrawer(): void {
     this.activeDrawer.set(null);
   }
+
+  // Conexión en vivo con el Clúster Ray (VM3 Spacecraft Node + Supabase)
+  public readonly clusterSyncStatus = signal<'IDLE' | 'RUNNING' | 'SYNC_OK' | 'ERROR'>('IDLE');
+  public readonly lastClusterReport = signal<any>(null);
+
+  private getSpacecraftBaseUrl(): string {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      return 'http://localhost:8000';
+    }
+    return 'https://enjoyable-stubble-lyrics.ngrok-free.dev';
+  }
+
+  public async runClusterInference(): Promise<void> {
+    if (this.clusterSyncStatus() === 'RUNNING') return;
+    this.clusterSyncStatus.set('RUNNING');
+    const s = this.scenario();
+    const params = new URLSearchParams({
+      do_o2_pct: String(s.oxygenFraction),
+      do_u_eclss: String(Number((s.flowVelocity / 100).toFixed(3))),
+      do_e_field: '14000',
+    });
+
+    try {
+      const res = await fetch(`${this.getSpacecraftBaseUrl()}/spacecraft/run_autonomous_inference?${params.toString()}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      this.lastClusterReport.set(data);
+      this.clusterSyncStatus.set(data.comm_sync_state === 'SYNC_OK' ? 'SYNC_OK' : 'ERROR');
+    } catch (err) {
+      console.error('Error conectando con VM3 Spacecraft Node:', err);
+      this.clusterSyncStatus.set('ERROR');
+    }
+  }
+
 }

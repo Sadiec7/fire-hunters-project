@@ -41,6 +41,17 @@
       <strong>PSI-69 / PSI-25 / PSI-98</strong>
     </div>
 
+    <!-- Botón de Inferencia Distribuida en Clúster Ray (VM3) -->
+    <button
+      type="button"
+      class="ios-badge blue"
+      style="cursor: pointer; border: none; padding: 6px 12px; font-weight: 600;"
+      (click)="ignisService.runClusterInference()"
+      [disabled]="ignisService.clusterSyncStatus() === 'RUNNING'"
+      title="Ejecutar 1,000 trayectorias 3D en clúster Ray (VM3) y guardar en Supabase">
+      {{ ignisService.clusterSyncStatus() === 'RUNNING' ? 'Ray 4-Workers (30s)...' : ignisService.clusterSyncStatus() === 'SYNC_OK' ? 'Ray SYNC_OK ✓' : 'Simular en Ray (VM3)' }}
+    </button>
+
     <!-- Toggle Modo Oscuro / Claro estilo iOS -->
     <button 
       type="button" 
