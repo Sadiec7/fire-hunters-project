@@ -11,13 +11,13 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from ia.contract_si import SimulationInputSI, validate_input_si, assert_valid_3d_fields, R_U_J_MOL_K
-    from ia.grid_3d import create_cartesian_grid_3d, compute_prescribed_velocity_3d
-    from ia.operators_3d import laplacian_3d, advection_upwind_3d
-except ImportError:
     from contract_si import SimulationInputSI, validate_input_si, assert_valid_3d_fields, R_U_J_MOL_K  # type: ignore
     from grid_3d import create_cartesian_grid_3d, compute_prescribed_velocity_3d  # type: ignore
     from operators_3d import laplacian_3d, advection_upwind_3d  # type: ignore
+except ImportError:
+    from ia.contract_si import SimulationInputSI, validate_input_si, assert_valid_3d_fields, R_U_J_MOL_K
+    from ia.grid_3d import create_cartesian_grid_3d, compute_prescribed_velocity_3d
+    from ia.operators_3d import laplacian_3d, advection_upwind_3d
 
 FUEL_DB_FALLBACK = {
     "C2H4": {"W_F": 0.02805, "s": 3.422, "delta_Hc": 4.716e7, "Ea": 1.255e5, "A": 1.2e9, "D_F0": 3.8e-5},
@@ -26,8 +26,8 @@ FUEL_DB_FALLBACK = {
 }
 
 
-def get_physical_properties_si(sim_input: SimulationInputSI) -> Dict[str, Any]:
-    f = FUEL_DB_FALLBACK[sim_input.fuel_type]
+def _fallback_get_physical_properties_si(sim_input: SimulationInputSI) -> Dict[str, Any]:
+    f = FUEL_DB_FALLBACK.get(sim_input.fuel_type, FUEL_DB_FALLBACK["C2H4"])
     uq = getattr(sim_input, "uq_perturbations", {}) or {}
 
     p_scale = 101325.0 / sim_input.pressure_Pa
@@ -58,7 +58,7 @@ def get_physical_properties_si(sim_input: SimulationInputSI) -> Dict[str, Any]:
     }
 
 
-def compute_chemical_sources_3d(
+def _fallback_compute_chemical_sources_3d(
     T_3d: np.ndarray,
     Y_F_3d: np.ndarray,
     Y_O_3d: np.ndarray,
@@ -98,58 +98,123 @@ def compute_chemical_sources_3d(
 
 
 try:
-    from ia.initial_boundary import initialize_fields_3d, apply_boundary_conditions_3d  # type: ignore
+    from thermo_kinetics import get_physical_properties_si as _angel_props, compute_chemical_sources_3d as _angel_chem  # type: ignore
 except ImportError:
     try:
-        from initial_boundary import initialize_fields_3d, apply_boundary_conditions_3d  # type: ignore
+        from ia.thermo_kinetics import get_physical_properties_si as _angel_props, compute_chemical_sources_3d as _angel_chem  # type: ignore
     except ImportError:
-        def initialize_fields_3d(
-            grid_dict: Dict[str, Any],
-            sim_input: SimulationInputSI
-        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-            R = grid_dict["R"]
-            r_b = sim_input.burner_radius_m
-            mask_b = grid_dict["mask_burner"]
-            mask_o = grid_dict["mask_outer"]
+        _angel_props = None
+        _angel_chem = None
 
-            r_safe = np.maximum(R, r_b)
-            Y_F_3d = sim_input.Y_F_burner * (r_b / r_safe) * np.exp(-(r_safe - r_b) / 0.012)
-            Y_O_3d = sim_input.Y_O_ambient * (1.0 - (r_b / r_safe) * np.exp(-(r_safe - r_b) / 0.018))
-            Y_F_3d = np.clip(Y_F_3d, 0.0, 1.0)
-            Y_O_3d = np.clip(Y_O_3d, 0.0, 1.0)
 
-            T_3d = np.full_like(R, sim_input.T_initial_K, dtype=np.float64)
-            r_spark_center = 0.016
-            spark_profile = np.exp(-((R - r_spark_center) / 0.0065) ** 2)
-            T_3d = T_3d + (1650.0 - sim_input.T_initial_K) * spark_profile
+def get_physical_properties_si(sim_input: SimulationInputSI) -> Dict[str, Any]:
+    if _angel_props is not None:
+        try:
+            props = dict(_angel_props(sim_input))
+            if "Xr" not in props:
+                uq = getattr(sim_input, "uq_perturbations", {}) or {}
+                props["Xr"] = float(uq.get("radiative_loss_fraction_Xr", 0.15))
+            return props
+        except Exception:
+            pass
+    return _fallback_get_physical_properties_si(sim_input)
 
-            Y_F_3d[mask_b] = sim_input.Y_F_burner
-            Y_O_3d[mask_b] = 0.0
-            T_3d[mask_b] = sim_input.T_burner_K
 
-            Y_F_3d[mask_o] = 0.0
-            Y_O_3d[mask_o] = sim_input.Y_O_ambient
-            T_3d[mask_o] = sim_input.T_initial_K
+def compute_chemical_sources_3d(
+    T_3d: np.ndarray,
+    Y_F_3d: np.ndarray,
+    Y_O_3d: np.ndarray,
+    props_dict: Dict[str, Any],
+    dt_s: float = None,
+    mask_burner: np.ndarray = None
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    if _angel_chem is not None:
+        try:
+            omega_F, omega_O, q_chem = _angel_chem(T_3d, Y_F_3d, Y_O_3d, props_dict, dt_s)
+            if mask_burner is not None:
+                omega_F = np.where(mask_burner, 0.0, omega_F)
+                omega_O = np.where(mask_burner, 0.0, omega_O)
+                q_chem = np.where(mask_burner, 0.0, q_chem)
+            return omega_F, omega_O, q_chem
+        except TypeError:
+            try:
+                return _angel_chem(T_3d, Y_F_3d, Y_O_3d, props_dict, mask_burner)
+            except Exception:
+                pass
+    return _fallback_compute_chemical_sources_3d(T_3d, Y_F_3d, Y_O_3d, props_dict, dt_s, mask_burner)
+
+
+try:
+    from initial_boundary import initialize_fields_3d as _angel_init, apply_boundary_conditions_3d as _angel_bc  # type: ignore
+except ImportError:
+    try:
+        from ia.initial_boundary import initialize_fields_3d as _angel_init, apply_boundary_conditions_3d as _angel_bc  # type: ignore
+    except ImportError:
+        _angel_init = None
+        _angel_bc = None
+
+
+def initialize_fields_3d(
+    grid_dict: Dict[str, Any],
+    sim_input: SimulationInputSI
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    if _angel_init is not None:
+        try:
+            return _angel_init(grid_dict, sim_input)
+        except Exception:
+            pass
+    R = grid_dict["R"]
+    r_b = sim_input.burner_radius_m
+    mask_b = grid_dict["mask_burner"]
+    mask_o = grid_dict["mask_outer"]
+
+    r_safe = np.maximum(R, r_b)
+    Y_F_3d = sim_input.Y_F_burner * (r_b / r_safe) * np.exp(-(r_safe - r_b) / 0.012)
+    Y_O_3d = sim_input.Y_O_ambient * (1.0 - (r_b / r_safe) * np.exp(-(r_safe - r_b) / 0.018))
+    Y_F_3d = np.clip(Y_F_3d, 0.0, 1.0)
+    Y_O_3d = np.clip(Y_O_3d, 0.0, 1.0)
+
+    T_3d = np.full_like(R, sim_input.T_initial_K, dtype=np.float64)
+    r_spark_center = 0.016
+    spark_profile = np.exp(-((R - r_spark_center) / 0.0065) ** 2)
+    T_3d = T_3d + (1650.0 - sim_input.T_initial_K) * spark_profile
+
+    Y_F_3d[mask_b] = sim_input.Y_F_burner
+    Y_O_3d[mask_b] = 0.0
+    T_3d[mask_b] = sim_input.T_burner_K
+
+    Y_F_3d[mask_o] = 0.0
+    Y_O_3d[mask_o] = sim_input.Y_O_ambient
+    T_3d[mask_o] = sim_input.T_initial_K
+    return Y_F_3d, Y_O_3d, T_3d
+
+
+def apply_boundary_conditions_3d(
+    Y_F_3d: np.ndarray,
+    Y_O_3d: np.ndarray,
+    T_3d: np.ndarray,
+    grid_dict: Dict[str, Any],
+    sim_input: SimulationInputSI
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    if _angel_bc is not None:
+        try:
+            res = _angel_bc(Y_F_3d, Y_O_3d, T_3d, grid_dict, sim_input)
+            if res is not None:
+                return res
             return Y_F_3d, Y_O_3d, T_3d
+        except Exception:
+            pass
+    mask_b = grid_dict["mask_burner"]
+    mask_o = grid_dict["mask_outer"]
 
-        def apply_boundary_conditions_3d(
-            Y_F_3d: np.ndarray,
-            Y_O_3d: np.ndarray,
-            T_3d: np.ndarray,
-            grid_dict: Dict[str, Any],
-            sim_input: SimulationInputSI
-        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-            mask_b = grid_dict["mask_burner"]
-            mask_o = grid_dict["mask_outer"]
+    Y_F_3d[mask_b] = sim_input.Y_F_burner
+    Y_O_3d[mask_b] = 0.0
+    T_3d[mask_b] = sim_input.T_burner_K
 
-            Y_F_3d[mask_b] = sim_input.Y_F_burner
-            Y_O_3d[mask_b] = 0.0
-            T_3d[mask_b] = sim_input.T_burner_K
-
-            Y_F_3d[mask_o] = 0.0
-            Y_O_3d[mask_o] = sim_input.Y_O_ambient
-            T_3d[mask_o] = sim_input.T_initial_K
-            return Y_F_3d, Y_O_3d, T_3d
+    Y_F_3d[mask_o] = 0.0
+    Y_O_3d[mask_o] = sim_input.Y_O_ambient
+    T_3d[mask_o] = sim_input.T_initial_K
+    return Y_F_3d, Y_O_3d, T_3d
 
 
 def compute_l2_normalized_residual(phi_new: np.ndarray, phi_old: np.ndarray, dt: float) -> float:
@@ -241,9 +306,9 @@ def export_3d_state_for_ignis(
         u_y_3d=sim_results["u_y"],
         u_z_3d=sim_results["u_z"],
         q_chem_3d=sim_results["q_chem_3d"],
-        x_m=g["x_m"],
-        y_m=g["y_m"],
-        z_m=g["z_m"],
+        x_m=g.get("x_m", g["x"]),
+        y_m=g.get("y_m", g["y"]),
+        z_m=g.get("z_m", g["z"]),
         time_history_s=np.asarray(sim_results["time_history_s"], dtype=np.float64),
     )
     return npz_path
@@ -418,4 +483,4 @@ if __name__ == "__main__":
     cfg = SimulationInputSI(grid_nodes_per_axis=31, total_time_s=0.4)
     res = run_transient_simulation_3d(cfg, max_steps=100)
     npz_file = export_3d_state_for_ignis(res)
-    print("solver_3d.py OK | Residuos:", res["convergence_and_residuals"]["L2_residuals"], "| NPZ:", npz_file)
+    print(f"solver_3d.py OK | T_max={res['max_temperature_K']} K | NPZ={npz_file}")
