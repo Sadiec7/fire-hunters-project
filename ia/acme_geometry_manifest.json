@@ -1,0 +1,81 @@
+{
+  "manifest_version": "2.0.0-EVIDENCE-TWIN",
+  "investigation_id": "PSI-23",
+  "dataset": "ACME_S_FLAME",
+  "experimental_file_key": "20013D1",
+  "experimental_conditions_summary": {
+    "fuel_bottle_text": "66.7% H2 with CH4",
+    "atmosphere_text": "~21% O2 with N4",
+    "composition_basis_verified": false,
+    "residual_gravity_m_s2": 1.0e-4,
+    "residual_gravity_tier": "GEOMETRIC_APPROXIMATION"
+  },
+  "meshes": {
+    "mesh_burner_sphere": {
+      "mesh_id": "mesh_burner_sphere",
+      "display_name": "Quemador Poroso Esferico Sinterizado",
+      "verification_tier": "VERIFIED_DIMENSION",
+      "epistemic_tag": "OBSERVED",
+      "radius_m": 0.00318,
+      "diameter_mm": 6.35,
+      "support_tube_diameter_m": 0.0016
+    },
+    "mesh_gas_inlet_mfc2": {
+      "mesh_id": "mesh_gas_inlet_mfc2",
+      "display_name": "Linea de Alimentacion MFC2 (V -> kg/s No Verificado)",
+      "verification_tier": "GEOMETRIC_APPROXIMATION",
+      "epistemic_tag": "OBSERVED",
+      "channel_id": "mfc2_v",
+      "unit": "V",
+      "calibration_verified": false
+    },
+    "mesh_gas_inlet_mfc3": {
+      "mesh_id": "mesh_gas_inlet_mfc3",
+      "display_name": "Linea de Alimentacion MFC3 (V -> kg/s No Verificado)",
+      "verification_tier": "GEOMETRIC_APPROXIMATION",
+      "epistemic_tag": "OBSERVED",
+      "channel_id": "mfc3_v",
+      "unit": "V",
+      "calibration_verified": false
+    },
+    "mesh_tc_rake": {
+      "mesh_id": "mesh_tc_rake",
+      "display_name": "Rastrillo Radial de Termopares (TCBurner, TCA, TCB, TCC)",
+      "verification_tier": "GEOMETRIC_APPROXIMATION",
+      "epistemic_tag": "GEOMETRIC_APPROXIMATION",
+      "sensors_included": ["TCBurner", "TCA", "TCB", "TCC"]
+    },
+    "mesh_pmt3": {
+      "mesh_id": "mesh_pmt3",
+      "display_name": "Fotomultiplicador Quimioluminiscencia PMT3 (OH*/CH*)",
+      "verification_tier": "GEOMETRIC_APPROXIMATION",
+      "epistemic_tag": "GEOMETRIC_APPROXIMATION",
+      "position_m": [0.0, 0.110, 0.020]
+    },
+    "mesh_radiometer_center": {
+      "mesh_id": "mesh_radiometer_center",
+      "display_name": "Radiometro Schmidt-Boelter Central (RadiometerCenter)",
+      "verification_tier": "VERIFIED_DIMENSION",
+      "epistemic_tag": "OBSERVED",
+      "radial_distance_m": 0.154,
+      "position_m": [-0.154, 0.0, 0.0]
+    },
+    "mesh_cir_housing": {
+      "mesh_id": "mesh_cir_housing",
+      "display_name": "Carcasa Exterior Camara CIR (~100 L) y Bridas Opticas",
+      "verification_tier": "ILLUSTRATIVE_ONLY",
+      "epistemic_tag": "UNVERIFIED",
+      "chamber_radius_m": 0.180,
+      "chamber_height_m": 0.360
+    }
+  },
+  "components": [
+    {"mesh_id": "mesh_burner_sphere", "verification_tier": "VERIFIED_DIMENSION", "radius_m": 0.00318},
+    {"mesh_id": "mesh_gas_inlet_mfc2", "verification_tier": "GEOMETRIC_APPROXIMATION"},
+    {"mesh_id": "mesh_gas_inlet_mfc3", "verification_tier": "GEOMETRIC_APPROXIMATION"},
+    {"mesh_id": "mesh_tc_rake", "verification_tier": "GEOMETRIC_APPROXIMATION"},
+    {"mesh_id": "mesh_pmt3", "verification_tier": "GEOMETRIC_APPROXIMATION"},
+    {"mesh_id": "mesh_radiometer_center", "verification_tier": "VERIFIED_DIMENSION", "radial_distance_m": 0.154},
+    {"mesh_id": "mesh_cir_housing", "verification_tier": "ILLUSTRATIVE_ONLY"}
+  ]
+}
