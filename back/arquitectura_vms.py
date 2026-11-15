@@ -1,3 +1,11 @@
+try:
+    from ia.ray_cluster_bridge import execute_ray_trajectory_swarm
+    IA_BRIDGE_READY = True
+except Exception as _ia_err:
+    IA_BRIDGE_READY = False
+    def execute_ray_trajectory_swarm(*args, **kwargs):
+        raise RuntimeError(f"ia.ray_cluster_bridge no disponible: {_ia_err}")
+import numpy as np
 import os
 import time
 import random
@@ -439,6 +447,109 @@ elif VM_ROLE == "SPACECRAFT":
             "tiempo_ejecucion_ray_s": tiempo_total,
             "supabase_persistence": estado_db,
             "detalle_por_archivo": resumen_archivos
+        }
+
+    @app.get("/spacecraft/run_autonomous_inference")
+    def run_autonomous_inference(do_u_eclss: float | None = None, do_o2_pct: float | None = None, do_e_field: float | None = None):
+        comm_sync_state = "SYNC_OK"
+        sqlite_cached_families = []
+        try:
+            relay = requests.get("http://comm-node:8002/comm/relay_sync", timeout=3).json()
+            comm_sync_state = relay.get("status", "SYNC_OK")
+            sqlite_cached_families = relay.get("payload", {}).get("evidence_records", [])
+        except Exception:
+            comm_sync_state = "AUTONOMOUS_SQLITE_FALLBACK"
+
+        intervention_do = {}
+        if do_u_eclss is not None:
+            intervention_do["U_ECLSS"] = float(do_u_eclss)
+        if do_o2_pct is not None:
+            intervention_do["O2_pct"] = float(do_o2_pct)
+        if do_e_field is not None:
+            intervention_do["E_FIELD"] = float(do_e_field)
+
+        rng = np.random.default_rng(seed=42)
+        trayectorias = [
+            {
+                "trajectory_id": i,
+                "U_ECLSS": float(rng.uniform(0.05, 0.45)),
+                "O2_pct": float(o2 := rng.uniform(18.0, 30.0)),
+                "Y_O_ambient": round(float(o2) / 100.0 * 1.1, 4),
+                "pressure_Pa": float(rng.choice([70300.0, 82700.0, 101325.0])),
+                "E_FIELD": float(rng.uniform(0.0, 15000.0)),
+                "fuel_type": "C2H4",
+                "diluent_species": "N2",
+                "Y_F_burner": 1.0,
+                "mass_flow_kg_s": float(rng.uniform(1.5e-6, 4.5e-6)),
+                "T_initial_K": 300.0,
+                "T_burner_K": 320.0,
+                "burner_radius_m": 0.00318,
+                "uq_perturbations": {"radiative_loss_fraction_Xr": float(rng.uniform(0.15, 0.45))},
+                "intervention_do": intervention_do,
+            }
+            for i in range(1000)
+        ]
+
+        t0 = time.perf_counter()
+        swarm_out = execute_ray_trajectory_swarm(
+            trajectory_inputs=trayectorias,
+            use_ray_cluster=True,
+            comm_sync_state=comm_sync_state,
+            sqlite_cached_families=sqlite_cached_families,
+        )
+        elapsed_s = round(time.perf_counter() - t0, 4)
+        partitions_16 = swarm_out.get("partitions_16", [])
+
+        partitions_summary = []
+        for idx, p in enumerate(partitions_16):
+            fl = p.get("flamelets", {})
+            lf = p.get("llamas_frias", {})
+            partitions_summary.append({
+                "particion": p.get("partition_id", idx),
+                "casos": p.get("trajectory_count", 62 if idx % 2 == 0 else 63),
+                "flamelets": round(float(fl.get("q_chem", 0.0)), 4),
+                "llamas_frias": round(float(lf.get("voxel_fraction", 0.0)) * 100, 2) if lf.get("active") else 0,
+            })
+
+        try:
+            sync_resp = requests.post(
+                "http://earth-node:8001/earth/save_ray_results",
+                json={
+                    "experimento": "IGNIS-SWARM-3D-SFLAME",
+                    "archivo_origen": "ia/solver_3d.py + ray_cluster_bridge",
+                    "total_filas": 1000,
+                    "tiempo_ejecucion_s": elapsed_s,
+                    "resumen_particiones": partitions_16,
+                },
+                timeout=10,
+            ).json()
+            sb_status = sync_resp.get("status", "UNKNOWN")
+        except Exception as e:
+            sb_status = f"OFFLINE_BUFFER ({e})"
+
+        return {
+            "node": "SPACECRAFT_NODE_VM3",
+            "comm_sync_state": swarm_out.get("comm_sync_state", comm_sync_state),
+            "sqlite_cached_families": swarm_out.get("sqlite_cached_families", sqlite_cached_families),
+            "supabase_persistence": sb_status,
+            "intervention_do_applied": intervention_do,
+            "physics_metrics": {
+                "max_temperature_K": swarm_out.get("max_temperature_K"),
+                "predicted_flame_radius_m": swarm_out.get("predicted_flame_radius_m"),
+                "heat_release_rate_W": swarm_out.get("heat_release_rate_W"),
+                "radiative_power_W": swarm_out.get("radiative_power_W"),
+                "velocity_summary_m_s": swarm_out.get("velocity_summary_m_s"),
+                "mass_fractions_peak_flame": swarm_out.get("mass_fractions_peak_flame"),
+                "extinction_probability": swarm_out.get("extinction_probability"),
+            },
+            "ray_cluster_inference": {
+                "total_trajectories": 1000,
+                "vm_partitions": 16,
+                "execution_time_s": elapsed_s,
+                "target_design_time_s": 112.5,
+                "partitions_summary": partitions_summary,
+                "partitions_16": partitions_16,
+            },
         }
 
 if __name__ == "__main__":

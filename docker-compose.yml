@@ -11,6 +11,7 @@ services:
       - "8001:8001"
     volumes:
       - ./back:/workspace
+      - ./ia:/workspace/ia
     working_dir: /workspace
     networks:
       ignis-net:
@@ -29,6 +30,7 @@ services:
       - earth-node
     volumes:
       - ./back:/workspace
+      - ./ia:/workspace/ia
     working_dir: /workspace
     networks:
       ignis-net:
@@ -50,6 +52,7 @@ services:
       - comm-node
     volumes:
       - ./back:/workspace
+      - ./ia:/workspace/ia
     working_dir: /workspace
     networks:
       ignis-net:
@@ -64,6 +67,7 @@ services:
       - spacecraft-node
     volumes:
       - ./back:/workspace
+      - ./ia:/workspace/ia
     working_dir: /workspace
     networks:
       ignis-net:
