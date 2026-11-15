@@ -394,3 +394,355 @@
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
 }
+
+/* ==========================================================================
+   JORNADAS SECTION (LOJO SENSITIVITY & WHAT NASA SHOULD TEST NEXT)
+   ========================================================================== */
+.jornadas-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  .jornadas-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    h5 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 2px 0;
+    }
+
+    p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+  }
+
+  .jornadas-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .jornada-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+
+      &.highlight-influential {
+        border-color: rgba(255, 149, 0, 0.45);
+        background: linear-gradient(180deg, rgba(255, 149, 0, 0.05), transparent);
+        box-shadow: 0 2px 10px rgba(255, 149, 0, 0.08);
+      }
+
+      .j-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .j-title-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          .j-id-tag {
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--text-primary);
+          }
+        }
+
+        .j-trials {
+          font-family: var(--font-mono);
+          font-size: 0.65rem;
+          color: var(--text-muted);
+        }
+      }
+
+      .j-rationale {
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+        line-height: 1.35;
+        margin: 0;
+      }
+
+      .j-metrics-row {
+        display: flex;
+        gap: 12px;
+        background: var(--bg-secondary);
+        padding: 6px 10px;
+        border-radius: 4px;
+        border: 1px solid var(--border-subtle);
+
+        .j-metric {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+          font-size: 0.65rem;
+
+          .jm-lbl {
+            color: var(--text-muted);
+          }
+
+          .jm-val {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--text-primary);
+
+            &.alert {
+              color: var(--accent-orange);
+            }
+          }
+        }
+      }
+
+      .j-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   EVIDENCE PASSPORT PANEL
+   ========================================================================== */
+.passport-panel, .why-panel, .brief-panel {
+  max-width: 680px;
+
+  .title-with-tag {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .system-passport-tag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      letter-spacing: 0.04em;
+    }
+
+    h3 {
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin: 0;
+    }
+  }
+}
+
+.passport-intro {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.passport-table-container {
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.passport-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+
+  tr {
+    border-bottom: 1px solid var(--border-subtle);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .p-field {
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    font-weight: 600;
+    width: 32%;
+    padding: 8px 12px;
+    vertical-align: top;
+  }
+
+  .p-val {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 8px 12px;
+
+    &.hash-cell {
+      word-break: break-all;
+      color: var(--accent-cyan);
+      font-size: 0.66rem;
+    }
+
+    &.warning-text {
+      color: var(--accent-orange);
+      line-height: 1.35;
+    }
+
+    .exp-id-pill {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-subtle);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+  }
+}
+
+.passport-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ==========================================================================
+   WHY THIS EXPERIMENT (LOJO SENSITIVITY MODAL)
+   ========================================================================== */
+.why-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  .why-card {
+    padding: 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+
+    h4 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 6px 0;
+    }
+
+    p {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin: 0;
+    }
+  }
+
+  .lojo-comparison-grid {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 12px 16px;
+
+    .lojo-box {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+
+      .l-lbl {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+      }
+
+      .l-val {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-primary);
+
+        &.danger {
+          color: var(--accent-red);
+        }
+      }
+    }
+
+    .lojo-arrow {
+      font-size: 1.1rem;
+      color: var(--accent-orange);
+    }
+  }
+}
+
+/* ==========================================================================
+   BRIEF MODAL STYLES
+   ========================================================================== */
+.brief-paper {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .brief-header-row {
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 10px;
+
+    h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 4px 0;
+    }
+
+    .brief-date {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+  }
+
+  .brief-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .bs-tag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    p {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .conditions-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .disclaimer-note {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+  }
+}
+

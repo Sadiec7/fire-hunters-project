@@ -51,3 +51,40 @@
 
 <!-- Drawer / Hoja lateral para acciones científicas -->
 <app-action-drawer></app-action-drawer>
+
+<!-- Barra Flotante de Recorrido Guiado Mission Control (Demo Jurado 90s: P2) -->
+@if (ignisService.activeTourStep(); as step) {
+  <div class="mission-tour-overlay">
+    <div class="tour-card ios-card">
+      <div class="tour-top">
+        <div class="tour-badge-row">
+          <span class="tour-pulse-dot"></span>
+          <span class="tour-step-pill">PASO {{ step }} DE 5 ({{ ignisService.missionControlSteps[step - 1].timeRange }})</span>
+          <span class="tour-mode-tag">Modo: {{ ignisService.missionControlSteps[step - 1].mode.toUpperCase() }}</span>
+        </div>
+        <button type="button" class="tour-close-btn" (click)="ignisService.closeTour()" aria-label="Finalizar recorrido">
+          <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="tour-body">
+        <h4 class="tour-title">{{ ignisService.missionControlSteps[step - 1].title }}</h4>
+        <p class="tour-desc">{{ ignisService.missionControlSteps[step - 1].instruction }}</p>
+      </div>
+
+      <div class="tour-footer">
+        <button type="button" class="tour-btn secondary" [disabled]="step === 1" (click)="ignisService.prevTourStep()">
+          ← Anterior
+        </button>
+        <div class="tour-dots">
+          @for (s of ignisService.missionControlSteps; track s.stepIndex) {
+            <span class="dot" [class.active]="s.stepIndex === step"></span>
+          }
+        </div>
+        <button type="button" class="tour-btn primary" (click)="ignisService.nextTourStep()">
+          {{ step === 5 ? 'Finalizar Demo' : 'Siguiente Paso →' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -2,7 +2,18 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IgnisService } from '../../core/services/ignis.service';
-import { BurnerGeometryType, FlowDirectionType, GravityMode, MaterialType } from '../../core/models/ignis.model';
+import {
+  BayesianNetworkModel,
+  BurnerGeometryType,
+  CounterfactualMode,
+  EvidencePassportData,
+  FlowDirectionType,
+  GravityMode,
+  MaterialType,
+  MfcPatternState,
+  ScientificRealityMode,
+  ScmModelVariant,
+} from '../../core/models/ignis.model';
 
 @Component({
   selector: 'app-scenario-controls',
@@ -23,6 +34,40 @@ export class ScenarioControlsComponent {
     'Delrin',
     'Silicone',
   ];
+
+  public setScientificMode(mode: ScientificRealityMode): void {
+    this.ignisService.setScientificMode(mode);
+  }
+
+  public setMfcPattern(pattern: MfcPatternState): void {
+    this.ignisService.setMfcPattern(pattern);
+  }
+
+  public setBayesianModel(model: BayesianNetworkModel): void {
+    this.ignisService.setBayesianModel(model);
+  }
+
+  public setCounterfactualTab(tab: CounterfactualMode): void {
+    this.ignisService.setCounterfactualTab(tab);
+  }
+
+  public setScmModel(m: ScmModelVariant): void {
+    this.ignisService.setScmModel(m);
+  }
+
+  public onMfc2ScaleChange(event: Event): void {
+    const val = Number((event.target as HTMLInputElement).value);
+    this.ignisService.mfc2Multiplier.set(val);
+  }
+
+  public onMfc3ScaleChange(event: Event): void {
+    const val = Number((event.target as HTMLInputElement).value);
+    this.ignisService.mfc3Multiplier.set(val);
+  }
+
+  public openEvidencePassport(data: Partial<EvidencePassportData>): void {
+    this.ignisService.openEvidencePassport(data);
+  }
 
   public setMaterial(material: MaterialType): void {
     this.ignisService.updateMaterial(material);

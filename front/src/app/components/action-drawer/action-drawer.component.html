@@ -165,13 +165,64 @@
           </div>
         }
 
-        <!-- VISTA 3: WHAT SHOULD NASA TEST NEXT? (ACTIVE LEARNING) -->
+        <!-- VISTA 3: WHAT SHOULD NASA TEST NEXT? (ACTIVE LEARNING & LOJO RANKING) -->
         @if (drawerType === 'next-test') {
           <div class="view-pane">
             <div class="equation-box">
               <span class="eq-label">Criterio bayesiano de muestreo de incertidumbre:</span>
               <code class="eq-code">x* = argmax_x H[ P(Y | x) ]</code>
               <p class="eq-sub">Optimización del siguiente punto en el espacio experimental que maximiza la reducción de entropía epistémica.</p>
+            </div>
+
+            <!-- CLASIFICACIÓN DE JORNADAS EXPERIMENTALES DE NASA ACME (VALIDACIÓN LOJO) -->
+            <div class="jornadas-section">
+              <div class="jornadas-head">
+                <span class="ios-badge warning">Influencia Causal de Jornadas (LOJO)</span>
+                <h5>Ranking de Jornadas Más Influyentes (NASA ACME N=282)</h5>
+                <p>Análisis Leave-One-Jornada-Out: Determina qué jornada experimental introduce el mayor sesgo o ganancia de información si se replica en microgravedad.</p>
+              </div>
+
+              <div class="jornadas-grid">
+                @for (j of ignisService.jornadaRankings(); track j.jornadaId) {
+                  <div class="jornada-card ios-card" [class.highlight-influential]="j.isMostInfluential">
+                    <div class="j-top">
+                      <div class="j-title-row">
+                        <span class="j-id-tag">JORNADA {{ j.jornadaId }}</span>
+                        @if (j.isMostInfluential) {
+                          <span class="ios-badge danger pulse">★ MÁS INFLUYENTE</span>
+                        }
+                      </div>
+                      <span class="j-trials">{{ j.trialsCount }} ensayos</span>
+                    </div>
+
+                    <p class="j-rationale">{{ j.rationale }}</p>
+
+                    <div class="j-metrics-row">
+                      <div class="j-metric">
+                        <span class="jm-lbl">Δ RMSE LOJO:</span>
+                        <span class="jm-val" [class.alert]="j.deltaRmseLojo > 0.1">+{{ j.deltaRmseLojo }}</span>
+                      </div>
+                      <div class="j-metric">
+                        <span class="jm-lbl">Shift de ATE:</span>
+                        <span class="jm-val">{{ j.ateShiftPct }}%</span>
+                      </div>
+                      <div class="j-metric">
+                        <span class="jm-lbl">Sin jornada:</span>
+                        <span class="jm-val font-mono">{{ j.withoutJornadaRmse }}</span>
+                      </div>
+                    </div>
+
+                    <div class="j-actions">
+                      <button type="button" class="ios-btn secondary sm" (click)="openWhy(j)">
+                        <span>¿Por qué este experimento?</span>
+                      </button>
+                      <button type="button" class="ios-btn primary sm" (click)="generateBrief(j.jornadaId)">
+                        <span>Generar Ficha Experimental</span>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
 
             <div class="recommendation-card ios-card">
@@ -202,6 +253,205 @@
             </div>
           </div>
         }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL: NASA EVIDENCE PASSPORT (P0)
+     ========================================================================= -->
+@if (ignisService.activeEvidencePassport(); as pass) {
+  <div class="sheet-backdrop" (click)="closePassport()">
+    <div class="sheet-panel passport-panel" (click)="$event.stopPropagation()">
+      <div class="sheet-topbar">
+        <div class="sheet-title-group">
+          <svg class="icon-svg sheet-icon blue" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <div class="title-with-tag">
+            <span class="system-passport-tag">[EVIDENCE PASSPORT · NASA PSI]</span>
+            <h3>{{ pass.title }}</h3>
+          </div>
+        </div>
+        <button type="button" class="sheet-close-btn" (click)="closePassport()" aria-label="Cerrar">
+          <svg class="icon-svg close-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="sheet-content passport-content">
+        <p class="passport-intro">
+          Cada conclusión científica generada por IGNIS-μ cuenta con procedencia criptográfica y trazabilidad directa hacia el repositorio de microgravedad NASA Physical Sciences Informatics (PSI).
+        </p>
+
+        <div class="passport-table-container">
+          <table class="passport-spec-table">
+            <tbody>
+              <tr>
+                <td class="p-field">Investigación NASA</td>
+                <td class="p-val"><strong>{{ pass.investigation }}</strong></td>
+              </tr>
+              <tr>
+                <td class="p-field">Identificador del Experimento</td>
+                <td class="p-val font-mono"><span class="exp-id-pill">{{ pass.experimentId }}</span></td>
+              </tr>
+              <tr>
+                <td class="p-field">Variable Observada</td>
+                <td class="p-val">{{ pass.observedVar }}</td>
+              </tr>
+              <tr>
+                <td class="p-field">Archivo Fuente Original</td>
+                <td class="p-val font-mono">{{ pass.sourceFile }}</td>
+              </tr>
+              <tr>
+                <td class="p-field">Hash Criptográfico SHA-256</td>
+                <td class="p-val font-mono hash-cell">{{ pass.sha256 }}</td>
+              </tr>
+              <tr>
+                <td class="p-field">Transformación Aplicada</td>
+                <td class="p-val">{{ pass.transformation }}</td>
+              </tr>
+              <tr>
+                <td class="p-field">Modelo Utilizado</td>
+                <td class="p-val">{{ pass.modelUsed }}</td>
+              </tr>
+              <tr>
+                <td class="p-field">Límites y Advertencias</td>
+                <td class="p-val warning-text">{{ pass.limitations }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="passport-actions">
+          <a [href]="pass.psiUrl" target="_blank" rel="noopener noreferrer" class="ios-btn primary">
+            <span>Consultar Registro Oficial en NASA PSI</span>
+            <svg class="icon-svg" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+          </a>
+          <button type="button" class="ios-btn secondary" (click)="closePassport()">
+            <span>Cerrar Pasaporte</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL: WHY THIS EXPERIMENT? (JORNADA 20176 LOJO BREAKDOWN)
+     ========================================================================= -->
+@if (ignisService.selectedJornadaWhy(); as why) {
+  <div class="sheet-backdrop" (click)="closeWhy()">
+    <div class="sheet-panel why-panel" (click)="$event.stopPropagation()">
+      <div class="sheet-topbar">
+        <div class="sheet-title-group">
+          <svg class="icon-svg sheet-icon orange" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <div class="title-with-tag">
+            <span class="system-passport-tag">[WHY THIS EXPERIMENT? · LOJO SENSITIVITY]</span>
+            <h3>Análisis Causal de Relevancia: {{ why.name }}</h3>
+          </div>
+        </div>
+        <button type="button" class="sheet-close-btn" (click)="closeWhy()" aria-label="Cerrar">
+          <svg class="icon-svg close-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="sheet-content">
+        <div class="why-body">
+          <div class="why-card ios-card">
+            <h4>¿Por qué la Jornada {{ why.jornadaId }} es la más influyente?</h4>
+            <p>{{ why.rationale }}</p>
+          </div>
+
+          <div class="lojo-comparison-grid">
+            <div class="lojo-box">
+              <span class="l-lbl">Error Baseline con las 18 Jornadas:</span>
+              <span class="l-val">RMSE: {{ why.baselineRmse }}</span>
+            </div>
+            <div class="lojo-arrow">➔</div>
+            <div class="lojo-box alert">
+              <span class="l-lbl">Error al Excluir la Jornada {{ why.jornadaId }}:</span>
+              <span class="l-val danger">RMSE: {{ why.withoutJornadaRmse }} (+194%)</span>
+            </div>
+          </div>
+
+          <div class="why-card ios-card">
+            <h4>Condiciones Recomendadas para una Nueva Replicación:</h4>
+            <p>{{ why.suggestedConditions }}</p>
+          </div>
+
+          <div class="action-row">
+            <button type="button" class="ios-btn primary" (click)="generateBrief(why.jornadaId); closeWhy()">
+              <span>Generar Ficha de Propuesta de Investigación</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL: GENERATED EXPERIMENT BRIEF
+     ========================================================================= -->
+@if (ignisService.generatedBrief(); as brief) {
+  <div class="sheet-backdrop" (click)="closeBrief()">
+    <div class="sheet-panel brief-panel" (click)="$event.stopPropagation()">
+      <div class="sheet-topbar">
+        <div class="sheet-title-group">
+          <svg class="icon-svg sheet-icon green" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          <div class="title-with-tag">
+            <span class="system-passport-tag">[EXPERIMENT BRIEF · PROPUESTA CIENTÍFICA]</span>
+            <h3>{{ brief.briefId }}</h3>
+          </div>
+        </div>
+        <button type="button" class="sheet-close-btn" (click)="closeBrief()" aria-label="Cerrar">
+          <svg class="icon-svg close-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="sheet-content brief-content">
+        <div class="brief-paper ios-card">
+          <div class="brief-header-row">
+            <h4>{{ brief.title }}</h4>
+            <span class="brief-date">Fecha de Emisión: {{ brief.generatedDate }}</span>
+          </div>
+
+          <div class="brief-section">
+            <span class="bs-tag">[HIPÓTESIS MECANICISTA]</span>
+            <p>{{ brief.scientificHypothesis }}</p>
+          </div>
+
+          <div class="brief-section">
+            <span class="bs-tag">[CONDICIONES DE PRUEBA PROPUESTAS EN MICROGRAVEDAD]</span>
+            <ul class="conditions-list">
+              <li><strong>Velocidad de Flujo:</strong> {{ brief.proposedConditions.flowVelocity }}</li>
+              <li><strong>Concentración de Oxígeno:</strong> {{ brief.proposedConditions.oxygenFraction }}</li>
+              <li><strong>Presión de Cámara:</strong> {{ brief.proposedConditions.pressure }}</li>
+              <li><strong>Geometría del Quemador:</strong> {{ brief.proposedConditions.burnerGeometry }}</li>
+              <li><strong>Combustible:</strong> {{ brief.proposedConditions.fuel }}</li>
+            </ul>
+          </div>
+
+          <div class="brief-section">
+            <span class="bs-tag">[SENSORES Y CANALES CRÍTICOS A REGISTRAR]</span>
+            <div class="tags-cluster">
+              @for (sensor of brief.targetSensors; track sensor) {
+                <span class="tag-pill">{{ sensor }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="brief-section">
+            <span class="bs-tag">[LIMITACIONES Y PROCEDENCIA]</span>
+            <p>{{ brief.epistemicLimitations }}</p>
+            <small class="disclaimer-note">{{ brief.systemDisclaimer }}</small>
+          </div>
+        </div>
+
+        <div class="passport-actions">
+          <button type="button" class="ios-btn secondary" (click)="closeBrief()">
+            <span>Cerrar Ficha</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
