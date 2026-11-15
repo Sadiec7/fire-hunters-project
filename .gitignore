@@ -1,13 +1,6 @@
-node_modules/
-/front/node_modules/
-venv/
-__pycache__/
-*.pyc
+.env
 *.db
 *.sqlite
-*.sqlite3
-dist/
-.angular/
-.env
-*.log
-.DS_Store
+__pycache__/
+.venv/
+artefactos_reproducibilidad/
