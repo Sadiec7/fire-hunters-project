@@ -391,9 +391,9 @@ export const TRANSLATIONS_EN: AppTranslations = {
   exportJson: 'Export (JSON)',
 
   // Bayesian & SCM Panel
-  bayesianSubtab: 'Live Bayesian (BN)',
-  scmSubtab: 'Factual vs Counterfactual',
-  digitalTwinSubtab: 'Digital Twin 20013D1',
+  bayesianSubtab: 'Bayesian (BN)',
+  scmSubtab: 'SCM Causal',
+  digitalTwinSubtab: 'Digital Twin',
   bayesianHeader: 'Live Bayesian Inference Engine',
   selectMfcPattern: 'Mass Flow Controller (MFC) Pattern:',
   patternSoloMfc3: 'Solo MFC3 positive',
@@ -651,9 +651,9 @@ export const TRANSLATIONS_ES: AppTranslations = {
   exportJson: 'Exportar (JSON)',
 
   // Bayesian & SCM Panel
-  bayesianSubtab: 'Live Bayesian (BN)',
-  scmSubtab: 'Factual vs Contrafactual',
-  digitalTwinSubtab: 'Gemelo Digital 20013D1',
+  bayesianSubtab: 'Bayesiano (BN)',
+  scmSubtab: 'SCM Causal',
+  digitalTwinSubtab: 'Gemelo Digital',
   bayesianHeader: 'Motor de Inferencia Bayesiana en Vivo',
   selectMfcPattern: 'Patrón de Flujo Másico (MFC):',
   patternSoloMfc3: 'Solo MFC3 positivo',

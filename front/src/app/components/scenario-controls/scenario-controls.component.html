@@ -770,6 +770,110 @@
         }
       </div>
       }
+
+      <!-- 3. DIGITAL TWIN 20013D1 & RAY CLUSTER SWARM (P0) -->
+      @else if (ignisService.inferenceSubMode() === 'digital-twin') {
+        <div class="digital-twin-card ios-card">
+          <div class="dt-header">
+            <div class="dt-title-box">
+              <span class="dt-tag">[NASA_PSI_ACME]</span>
+              <h4 class="dt-title">{{ ignisService.currentLang() === 'en' ? 'Digital Twin · NASA ACME 20013D1' : 'Gemelo Digital · NASA ACME 20013D1' }}</h4>
+            </div>
+            <span class="cluster-status-pill">
+              <span class="pulse-dot"></span>
+              {{ ignisService.rayClusterStatus().workerVm }}
+            </span>
+          </div>
+
+          <!-- Ray Swarm Zero-Copy Shared Memory Status -->
+          <div class="ray-metrics-row">
+            <div class="ray-box">
+              <span class="ray-key">{{ ignisService.currentLang() === 'en' ? 'Swarm Bridge' : 'Puente Swarm' }}</span>
+              <span class="ray-val">{{ ignisService.rayClusterStatus().activeSwarmNodes }} Nodes</span>
+            </div>
+            <div class="ray-box">
+              <span class="ray-key">Ray Zero-Copy</span>
+              <span class="ray-val">{{ ignisService.rayClusterStatus().ringBufferMb }} MB RingBuffer</span>
+            </div>
+            <div class="ray-box">
+              <span class="ray-key">{{ ignisService.currentLang() === 'en' ? 'Task Latency' : 'Latencia Tareas' }}</span>
+              <span class="ray-val">{{ ignisService.rayClusterStatus().taskLatencyMs }} ms</span>
+            </div>
+          </div>
+
+          <!-- 42-Event Scrubber / Reconstructed ACME 20013D1 Timeline -->
+          <div class="discrete-mfc-section">
+            <div class="discrete-header-row">
+              <label class="discrete-label">{{ ignisService.t().discreteEventsLabel }}</label>
+              <span class="discrete-badge">{{ ignisService.t().eventNumber }} #{{ getSelectedEvent().eventIndex }} / 42 (t = {{ getSelectedEvent().timeSec }}s)</span>
+            </div>
+
+            <input 
+              type="range" 
+              class="mfc-scrubber" 
+              [min]="1" 
+              [max]="42" 
+              [step]="1" 
+              [value]="ignisService.currentMfcEventIndex()"
+              (input)="onMfcEventChange($event)">
+
+            <div class="event-details-card">
+              <div class="event-val-col">
+                <span class="evt-title">MFC2 (C₂H₄)</span>
+                <span class="evt-num font-mono">{{ getSelectedEvent().mfc2V.toFixed(2) }} V</span>
+              </div>
+              <div class="event-val-col">
+                <span class="evt-title">MFC3 (O₂/N₂)</span>
+                <span class="evt-num font-mono">{{ getSelectedEvent().mfc3V.toFixed(2) }} V</span>
+              </div>
+              <div class="event-val-col">
+                <span class="evt-title">{{ ignisService.currentLang() === 'en' ? 'Regime' : 'Régimen' }}</span>
+                <span class="evt-num font-mono" [style.color]="getSelectedEvent().eventIndex === 42 ? 'var(--accent-red)' : 'var(--accent-green)'">
+                  {{ getSelectedEvent().eventIndex === 42 ? 'QUENCH' : 'BURNING' }}
+                </span>
+              </div>
+              <div class="event-phase-col">
+                <span class="evt-phase-tag">{{ getSelectedEvent().phaseNote }}</span>
+              </div>
+            </div>
+
+            <div class="lock-callout">
+              <span class="callout-tag">[CALIBRATION LOCK ACTIVE]</span>
+              <p>{{ ignisService.t().calibrationLockActive }}</p>
+            </div>
+          </div>
+
+          <!-- 8-Sensor Instrumental Matrix (NASA PSI-23 Manifest) -->
+          <div class="sensor-matrix-section">
+            <h5 class="matrix-title">{{ ignisService.t().sensorMatrixHeader }}</h5>
+            <div class="sensor-grid-list">
+              @for (sensor of ignisService.digitalTwinSensors(); track sensor.sensorId) {
+                <div class="sensor-item-row" (click)="openEvidencePassport({ experimentId: '20013D1', title: sensor.label, observedVar: sensor.sensorId, sourceFile: sensor.sourceFile })">
+                  <div class="s-left">
+                    <span class="s-dot" [class.verified]="sensor.verificationTier === 'VERIFIED_DIMENSION'"></span>
+                    <strong>{{ sensor.sensorId }}</strong>
+                    <span class="s-sub">{{ sensor.category }} (r = {{ sensor.radialDistanceMm }} mm)</span>
+                  </div>
+                  <div class="s-right">
+                    <span class="s-val font-mono">{{ sensor.currentRawValue.toFixed(2) }} {{ sensor.originalUnit }}</span>
+                    <span class="s-tier-pill" [class.verified]="sensor.verificationTier === 'VERIFIED_DIMENSION'">
+                      {{ sensor.verificationTier === 'VERIFIED_DIMENSION' ? 'VERIFIED' : 'GEOM APPROX' }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Burke-Schumann Thermodynamic & RTE Physics Audit Box -->
+          <div class="physics-audit-box">
+            <div class="audit-row">
+              <span>{{ ignisService.t().physicsAuditHeader }}</span>
+              <span><strong>q_chem</strong>: 124.6 W | <strong>q_rad (RTE)</strong>: 41.2 W | <strong>r_f</strong>: 22.2 mm</span>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   }
 
